@@ -1,0 +1,68 @@
+{
+  "AppName": "OraxHotel",
+  "App": {
+    "ListenUrl": "http://localhost:5080",
+    "OpenBrowserOnStart": true,
+    "LaunchAfterInstall": true
+  },
+  "Database": {
+    "Primary": {
+      "Server": ".\\SQLEXPRESS",
+      "DatabaseName": "Hotel_alkheer",
+      "UseIntegratedSecurity": false,
+      "UserId": "sa",
+      "Password": "orax055266",
+      "TrustServerCertificate": true,
+      "Encrypt": false,
+      "ConnectTimeout": 60,
+      "MultipleActiveResultSets": true
+    },
+    "ProductionRemote": {
+      "Server": "95.216.218.251,12356",
+      "DatabaseName": "Hotel_talal_2",
+      "UseIntegratedSecurity": false,
+      "UserId": "sa",
+      "Password": "orax055266",
+      "TrustServerCertificate": true,
+      "Encrypt": false,
+      "ConnectTimeout": 60,
+      "MultipleActiveResultSets": true
+    },
+    "AlternateLocal": {
+      "Server": ".",
+      "DatabaseName": "HotelDb_2",
+      "UseIntegratedSecurity": false,
+      "UserId": "sa",
+      "Password": "orax055266",
+      "TrustServerCertificate": true,
+      "Encrypt": false,
+      "ConnectTimeout": 60,
+      "MultipleActiveResultSets": true
+    }
+  },
+  "Restore": {
+    "RestoreBackupIfMissing": true,
+    "BackupFile": "Hotel_alkheer20232009552241.bak",
+    "InitSqlFile": "Hotel_alkheer_init.sql",
+    "OverwriteExisting": false
+  },
+  "AdminSeed": {
+    "Enabled": true,
+    "Username": "admin",
+    "Password": "Admin@2024!",
+    "Email": "admin@oraxhotel.local",
+    "Role": "Admin"
+  },
+  "Security": {
+    "EnforceStrongPasswords": false,
+    "RequireConfirmedAccount": false
+  },
+  "Behavior": {
+    "Silent": true,
+    "AutoDetectSqlServer": true,
+    "TryStartService": true,
+    "GrantSqlServiceReadAccess": true,
+    "CreateDesktopShortcut": true,
+    "RegisterUninstaller": true
+  }
+}

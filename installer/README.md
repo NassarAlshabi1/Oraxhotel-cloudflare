@@ -1,35 +1,110 @@
-# Orax Hotel Windows Installer
+# Orax Hotel Windows Installer — المُثبّت المتكامل
 
-هذا المجلد يحتوي مصدر مُثبّت Windows ذاتي التشغيل. المُثبّت يثبت `HotelSys.exe`، ويضمّن payload التطبيق، ثم يطلب إعداد SQL Server ويستعيد قاعدة `Hotel_alkheer` الموجودة في النسخة الاحتياطية دون إنشاء حساب `admin` جديد.
+هذا المجلد يحتوي مصدر مُثبّت Windows **ذاتي التشغيل ومتكامل**. المُثبّت يثبت `HotelSys.exe` وكل الملحقات، ويهيّئ اتصال SQL Server، ويستعيد قاعدة `Hotel_alkheer` من النسخة الاحتياطية المضمّنة، ويكتب `appsettings.json` بالكامل، ثم يُشغّل التطبيق ويفتح المتصفح.
 
-## ملفات البناء المطلوبة
+## 📋 المزايا
 
-يحتاج البناء إلى `dotnet SDK 8`، وملف `payload.7z` الذي يحتوي مجلد `payload`، وملف `7zr.exe` الرسمي داخل مشروع المُثبّت. لا تُضاف هذه الملفات الثنائية إلى Git إذا تجاوزت حدود التخزين أو احتوت على بيانات إنتاجية.
+- ✅ **تثبيت صامت كامل** — لا يطلب أي إدخال من المستخدم
+- ✅ **إعدادات SQL Server مُسبقة** — كل الأسرار في `installer-config.json`
+- ✅ **استعادة قاعدة البيانات** — من ملف `.bak` المضمّن تلقائياً
+- ✅ **كتابة `appsettings.json` بالكامل** — كل connection strings المطلوبة
+- ✅ **إنشاء حساب مشرف افتراضي** — تلقائياً داخل قاعدة البيانات
+- ✅ **اختصار سطح المكتب** — تلقائياً بعد التثبيت
+- ✅ **فتح منفذ 5080 في جدار الحماية** — تلقائياً
+- ✅ **تشغيل التطبيق** — تلقائياً وفتح المتصفح على `http://localhost:5080`
+- ✅ **وضع تفاعلي اختياري** — عبر `--interactive`
+- ✅ **سجل تفصيلي** — عبر `--verbose`
 
-يجب أن يحتوي payload على:
+## 📁 محتويات المجلد
 
-```text
-payload/HotelSys.exe
-payload/appsettings.json
-payload/database/Hotel_alkheer20232009552241.bak
-payload/database/Hotel_alkheer_init.sql
-payload/wwwroot/...
+| الملف | الوصف |
+|---|---|
+| `Program.cs` | كود المُثبّت الرئيسي (C# / .NET 8) |
+| `Installer.csproj` | ملف المشروع (يضمّن `installer-config.json` و`payload.7z` و`7zr.exe`) |
+| `installer-config.json` | **كل الأسرار والإعدادات** — اقرأه قبل النشر |
+| `Build-Installer.ps1` | سكربت بناء الحزمة الكامل (يبني التطبيق + الحمولة + المُثبّت) |
+| `README.md` | هذا الملف |
+| `payload.7z` | الحمولة المضغوطة (يُنتجها `Build-Installer.ps1`) — غير مضمّن في Git |
+| `7zr.exe` | أداة 7-Zip للاستخراج (تُنزّل تلقائياً عند البناء) |
+
+## 🔧 متطلبات البناء
+
+- **Windows 10/11 x64** (أو Ubuntu 22.04+ مع `dotnet SDK 8` للبناء المتقاطع)
+- `dotnet SDK 8.0` أو أحدث
+- DevExpress NuGet feed صالح (للحصول على مكتبات DevExpress اللازمة لـ HotelSys)
+- حوالي 1 GB مساحة حرة
+
+## 🏗️ بناء المُثبّت
+
+```powershell
+# على Windows PowerShell 5.1+ أو PowerShell 7+
+cd installer
+.\Build-Installer.ps1
 ```
 
-بعد توفير الموارد، يُبنى المُثبّت باستخدام:
+النتيجة في `installer\build-output\installer\OraxHotel-Setup.exe`.
 
-```bash
-dotnet restore Installer.csproj
-dotnet publish Installer.csproj -c Release -r win-x64 --self-contained true \
-  -p:PublishSingleFile=true \
-  -p:IncludeNativeLibrariesForSelfExtract=true \
-  -p:DebugType=None
+### خيارات البناء
+
+```powershell
+# تخطي بناء التطبيق (إن كان جاهزاً)
+.\Build-Installer.ps1 -SkipAppBuild
+
+# تخطي بناء المُثبّت (للاختبار فقط)
+.\Build-Installer.ps1 -SkipInstallerBuild
+
+# وضع Verbose
+.\Build-Installer.ps1 -Verbose
 ```
 
-## سلوك المُثبّت
+## 🚀 استخدام المُثبّت
 
-يطلب المُثبّت اسم خادم SQL Server ونوع المصادقة. إذا لم تكن قاعدة `Hotel_alkheer` موجودة، يستعيد ملف `.bak` المضمن. إذا كانت القاعدة موجودة، يحافظ عليها. لا ينشئ حساب `admin` ولا يكتب كلمة مرور تطبيق ثابتة؛ شاشة الدخول تستخدم حساب المشرف الموجود في قاعدة البيانات المستعادة.
+### الوضع الصامت (الافتراضي)
 
-## تنبيه أمني
+```cmd
+OraxHotel-Setup.exe
+```
 
-لا تضع كلمات مرور SQL Server أو عناوين الخوادم البعيدة داخل ملفات المصدر. يكتب المُثبّت `appsettings.json` بعد إدخال الاتصال أثناء التثبيت. لا تستخدم `sa` للتشغيل اليومي، ولا تضع قاعدة بيانات إنتاجية أو نسخة احتياطية تحتوي بيانات شخصية داخل مستودع عام.
+سيتولّى المُثبّت كل شيء تلقائياً. يُفضّل تشغيل كمسؤول (Run as administrator).
+
+### الوضع التفاعلي
+
+```cmd
+OraxHotel-Setup.exe --interactive
+```
+
+يطلب من المستخدم إدخال اسم الخادم وكلمة المرور عند فشل الاتصال الافتراضي.
+
+### الوضع التفصيلي (verbose)
+
+```cmd
+OraxHotel-Setup.exe --verbose
+```
+
+يطبع كل خطوة على الشاشة للتشخيص.
+
+## ⚙️ تعديل الإعدادات
+
+كل الأسرار في `installer-config.json`. عدّلها قبل البناء لتغيير:
+
+- خادم SQL Server الافتراضي (الحالي: `.\SQLEXPRESS`)
+- حساب SQL المستخدم (الحالي: `sa` / `orax055266`)
+- قاعدة البيانات (الحالية: `Hotel_alkheer`)
+- حساب المشرف الافتراضي (الحالي: `admin` / `Admin@2024!`)
+- عنوان الاستماع (الحالي: `http://localhost:5080`)
+- رابط خادم الإنتاج البعيد (`95.216.218.251,12356`)
+
+## ⚠️ تنبيه أمني
+
+ملف `installer-config.json` يحوي كلمات مرور فعلية. قبل النشر:
+
+1. **لا ترفع `installer-config.json` إلى مستودع عام**. (.gitignore الحالي يستثنيه)
+2. إذا نشرت `OraxHotel-Setup.exe` علناً، فكلمات المرور بداخله قابلة للاستخراج. استخدم حزمة خاصة لكل عميل.
+3. غيّر كلمة مرور `sa` على خوادم الإنتاج قبل أي نشر علني.
+4. استخدم tokens GitHub ذات scope محدود لرفع الحزمة.
+
+## 📝 ملاحظات تقنية
+
+- المُثبّت يبني كـ `Self-contained` (`PublishSingleFile=true`) — لا يحتاج .NET Runtime مُثبّتاً على جهاز الهدف.
+- حجم الحزمة النهائي حوالي 150–250 MB (يشمل .NET Runtime + DevExpress + wwwroot + قاعدة البيانات).
+- الخدمات المطلوبة على جهاز الهدف: **SQL Server 2019+ أو SQL Server Express 2019+**.

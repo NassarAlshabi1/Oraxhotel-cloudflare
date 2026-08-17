@@ -9,10 +9,18 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <InvariantGlobalization>true</InvariantGlobalization>
     <DebugType>None</DebugType>
+    <AssemblyName>OraxHotel-Setup</AssemblyName>
+    <Version>1.0.0</Version>
+    <Company>Orax Hotel</Company>
+    <Product>Orax Hotel Windows Installer</Product>
+    <Description>Self-contained silent installer for Orax Hotel.</Description>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+    <!-- حزمة System.ServiceProcess.ServiceController للتحقق من خدمة SQL Server -->
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
+    <EmbeddedResource Include="installer-config.json" LogicalName="installer-config.json" />
     <EmbeddedResource Include="payload.7z" LogicalName="payload.7z" />
     <EmbeddedResource Include="7zr.exe" LogicalName="7zr.exe" />
   </ItemGroup>
