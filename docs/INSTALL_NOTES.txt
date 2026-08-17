@@ -1,8 +1,9 @@
 OraxHotel-Setup.exe — مُثبّت Windows المتكامل v1.0.0
 =====================================================
 
-الحجم:    ~74 MB (self-contained .NET 8 — لا يحتاج .NET Runtime)
-SHA-256: f74c0f3662a0a2ff76d46fae4ecded3fc153104acac1ec490d3cb9391ab1e808
+الحجم:    188,980,326 bytes (180.23 MB) — payload مضمّن
+SHA-256: f9ddb76abb8f70ea1a01a7c2af74ff1791c9f7c3d3c613216433d1465e294ccb
+المسار:   installer/OraxHotel-Setup.exe (في الفرع feature/windows-installer)
 
 =====================================================
 الترتيب الصحيح للتثبيت (اقرأ بالترتيب قبل التنفيذ)

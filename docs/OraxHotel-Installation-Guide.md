@@ -1,10 +1,12 @@
 # دليل تثبيت Orax Hotel — الترتيب الصحيح المتسلسل
 
-> **الإصدار:** 1.0.0
-> **الملف:** `OraxHotel-Setup.exe`
-> **الحجم:** ~74 MB (self-contained .NET 8 — لا يحتاج تثبيت .NET Runtime)
-> **SHA-256:** `f74c0f3662a0a2ff76d46fae4ecded3fc153104acac1ec490d3cb9391ab1e808`
+> **الإصدار:** 1.0.0 (معدّل ومُحدّث بالحمولة الكاملة المضمّنة)
+> **الملف:** `OraxHotel-Setup.exe` (موجود في `installer/` بالفرع `feature/windows-installer`)
+> **الحجم:** 188,980,326 bytes (180.23 MB) — self-contained .NET 8 binary مع payload مضمّن
+> **SHA-256:** `f9ddb76abb8f70ea1a01a7c2af74ff1791c9f7c3d3c613216433d1465e294ccb`
 > **عنوان التطبيق بعد التثبيت:** `http://localhost:5080`
+> **مصدر البناء:** dotnet SDK 8 على Linux (cross-compile إلى win-x64)
+> **مصدر الـ payload.7z:** مُستخرج من الإصدار السابق (b0f178ca...) المبني على Windows
 
 ---
 
@@ -305,9 +307,9 @@ netstat -an | findstr :5080
 | المعلومة | القيمة |
 |---|---|
 | اسم الملف | `OraxHotel-Setup.exe` |
-| الحجم | ~74 MB |
+| الحجم | 188,980,326 bytes (180.23 MB) |
 | الإصدار | 1.0.0 |
-| SHA-256 | `f74c0f3662a0a2ff76d46fae4ecded3fc153104acac1ec490d3cb9391ab1e808` |
+| SHA-256 | `f9ddb76abb8f70ea1a01a7c2af74ff1791c9f7c3d3c613216433d1465e294ccb` |
 | خادم SQL الافتراضي | `.\SQLEXPRESS` |
 | حساب SQL الافتراضي | `sa` / `orax055266` |
 | قاعدة البيانات | `Hotel_alkheer` |
