@@ -70,11 +70,8 @@ namespace HotelSys.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                // optionsBuilder.UseSqlServer("Data Source=DESKTOP-47H6HKQ;Initial Catalog=Hotel_alkheer;Integrated Security=False;User ID=sa;Password=Ss------123456;");
-                //Hotel_alkheer
-
-                optionsBuilder.UseSqlServer("Server=95.216.218.251,12356;Database=Hotel_talal_2;Trusted_Connection=False;MultipleActiveResultSets=true;User ID=sa;Password=orax055266");
-
+                // Configure the connection through dependency injection and appsettings.json.
+                // Do not place SQL Server credentials in generated source code.
                 //
                 
 
