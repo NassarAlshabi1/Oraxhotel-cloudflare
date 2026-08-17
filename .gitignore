@@ -4,19 +4,16 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 # === Orax Hotel Installer artifacts ===
-# لا تُرفع إلى Git الملفات الثنائية الكبيرة أو ملفات البناء
-installer/payload.7z
-installer/7zr.exe
+# لا تُرفع إلى Git ملفات البناء الصغيرة فقط؛ .exe و .7z تُرفع عبر Git LFS
 installer/build-output/
 installer/build-output/**
 build-output/
 build-output/**
-*.7z
 payload/
 payload/**
 
-# ملف تكوين الإنتاج الحقيقي — استخدم installer-config.local.json للإعدادات الحساسة
-# installer-config.json يُرفع لأنه القالب الافتراضي (بدون أسرار إنتاج حقيقية)
+# installer-config.json يُرفع لأنه القالب الافتراضي
+# payload.7z و 7zr.exe و OraxHotel-Setup.exe تُرفع عبر Git LFS (انظر .gitattributes)
 
 
 # User-specific files
