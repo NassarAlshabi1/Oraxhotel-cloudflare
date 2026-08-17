@@ -1,0 +1,8 @@
+bin/
+obj/
+payload/
+payload.7z
+7zr.exe
+*.exe
+*.bak
+*.pdb

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+    <EmbeddedResource Include="payload.7z" LogicalName="payload.7z" />
+    <EmbeddedResource Include="7zr.exe" LogicalName="7zr.exe" />
+  </ItemGroup>
+</Project>

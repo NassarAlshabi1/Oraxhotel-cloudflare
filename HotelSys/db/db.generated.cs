@@ -22,7 +22,7 @@ namespace DataModels
 {
 	/// <summary>
 	/// Database       : Hotel_alkheer
-	/// Data Source    : DESKTOP-47H6HKQ
+	/// Data Source    : configured at runtime
 	/// Server Version : 15.00.2104
 	/// </summary>
 	public partial class HotelAlkheerDB : LinqToDB.Data.DataConnection

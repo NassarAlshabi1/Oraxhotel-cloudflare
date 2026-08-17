@@ -18,7 +18,7 @@
 
 			<connectionStrings>
 				<add name="MyDatabase" providerName="System.Data.SqlClient"
-					connectionString="Data Source=.;Database=MyDatabase;User Id=User;Password=TestPassword;" />
+					connectionString="Data Source=.;Database=MyDatabase;User Id=User;Password=__SET_VIA_SECRET_STORE__" />
 			</connectionStrings>
 
 		4. To access your database use the following code:
@@ -54,7 +54,8 @@
 
 	// to configure GetSchemaOptions properties, add them here, before load metadata call
 
-	LoadSqlServerMetadata("DESKTOP-47H6HKQ", "Hotel_alkheer", "sa", "Ss------123456");
+		// Configure LoadSqlServerMetadata with local credentials only when generating the model.
+		// Never commit production credentials to this template.
 //	LoadSqlServerMetadata(".", "HotelDb_2"); // Integrated Security
 //	LoadSqlServerMetadata(string connectionString);
 
