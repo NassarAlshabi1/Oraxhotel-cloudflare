@@ -18,10 +18,16 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
-    <!-- حزمة System.ServiceProcess.ServiceController للتحقق من خدمة SQL Server -->
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
+  </ItemGroup>
+  <!-- موارد مضمّنة اختيارية: تُضمّن فقط إن وُجدت أثناء البناء -->
+  <ItemGroup Condition="Exists('installer-config.json')">
     <EmbeddedResource Include="installer-config.json" LogicalName="installer-config.json" />
-    <EmbeddedResource Include="payload.7z" LogicalName="payload.7z" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('7zr.exe')">
     <EmbeddedResource Include="7zr.exe" LogicalName="7zr.exe" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('payload.7z')">
+    <EmbeddedResource Include="payload.7z" LogicalName="payload.7z" />
   </ItemGroup>
 </Project>

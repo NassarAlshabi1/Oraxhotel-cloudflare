@@ -1,59 +1,158 @@
-Orax Hotel — مُثبّت Windows المتكامل (v1.0.0)
-===============================================
+OraxHotel-Setup.exe — مُثبّت Windows المتكامل v1.0.0
+=====================================================
 
-ما يقوم به OraxHotel-Setup.exe:
+الحجم:    ~74 MB (self-contained .NET 8 — لا يحتاج .NET Runtime)
+SHA-256: f74c0f3662a0a2ff76d46fae4ecded3fc153104acac1ec490d3cb9391ab1e808
 
-1) يثبّت التطبيق وملفات الواجهة والتقارير والملحقات داخل:
-   %LOCALAPPDATA%\OraxHotel
+=====================================================
+الترتيب الصحيح للتثبيت (اقرأ بالترتيب قبل التنفيذ)
+=====================================================
 
-2) يفحص خدمة SQL Server ويحاول تشغيلها إن كانت متوقفة.
-   الخادم الافتراضي: .\SQLEXPRESS
-   الحساب الافتراضي: sa  /  orax055266
-   (كل القيم في installer-config.json قابلة للتعديل قبل البناء)
+الخطوة 0: المتطلبات قبل البدء
+---------------------------------
+- Windows 10/11 x64
+- 4+ GB RAM
+- 2+ GB مساحة حرة
+- SQL Server 2019+ أو SQL Server Express 2019+
+- تنزيل SQL Server Express (مجاني):
+  https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+- صلاحيات Administrator (مفضلة)
 
-3) ينسخ النسخة الاحتياطية Hotel_alkheer20232009552241.bak إلى:
-   %ProgramData%\OraxHotel\Database
-   ثم يستعيدها إلى قاعدة Hotel_alkheer إن لم تكن موجودة.
+الخطوة 1: الحصول على المُثبّت
+---------------------------------
+- من GitHub Release:
+  https://github.com/Nassaralshabi/oraxhotel2024/releases/download/windows-installer-v1.0.0/OraxHotel-Setup.exe
+- أو البناء من المصدر عبر installer/Build-Installer.ps1
 
-4) يكتب appsettings.json الكامل بكل connection strings المطلوبة:
-   cc, Hotel_alkheerContext, cc0, cc1, cc2, HotelDb_2Context0..2
-   (كلها تشير إلى نفس قاعدة البيانات المحلية المُستعادة)
+الخطوة 2: التأكد من SQL Server (إجباري قبل الخطوة 3)
+---------------------------------
+- افتح Services.msc
+- ابحث عن: SQL Server (SQLEXPRESS) أو SQL Server (MSSQLSERVER)
+- الحالة يجب أن تكون: Running
+- في SQL Server Configuration Manager: فعّل TCP/IP
+- في SSMS: Properties → Security → فعّل "SQL Server and Windows Authentication"
 
-5) يُنشئ حساب مشرف افتراضي داخل dbo.AspNetUsers (إن لم يوجد):
-   اسم المستخدم: admin
-   كلمة المرور: Admin@2024!
-   البريد:      admin@oraxhotel.local
-   (يُنصح بتغييرها بعد أول دخول)
+الخطوة 3: تشغيل المُثبّت (Administrator)
+---------------------------------
+1. اضغط يميناً على OraxHotel-Setup.exe → Run as administrator
+2. اقبل مُطالبة UAC
+3. انتظر 30 ثانية إلى 3 دقائق
 
-6) يُنشئ اختصار Orax Hotel على سطح المكتب.
+خيارات سطر الأوامر:
+  OraxHotel-Setup.exe                 (الوضع الصامت التلقائي — مفضل)
+  OraxHotel-Setup.exe --interactive   (يدوي عند فشل الاتصال)
+  OraxHotel-Setup.exe --verbose       (تفاصيل لكل خطوة)
+  OraxHotel-Setup.exe --help          (عرض الخيارات)
 
-7) يفتح منفذ 5080 في جدار حماية Windows.
+الخطوة 4: ما يحدث تلقائياً (19 خطوة متسلسلة)
+---------------------------------
+1)  قراءة installer-config.json المضمن
+2)  فحص خدمة SQL Server
+3)  تشغيل الخدمة إن كانت متوقفة
+4)  اختبار اتصال sa / orax055266 على .\SQLEXPRESS
+5)  استخراج 7zr.exe المضمن (أو تنزيله)
+6)  استخراج/تنزيل حمولة payload.7z
+7)  نسخ HotelSys.exe + wwwroot إلى %LOCALAPPDATA%\OraxHotel
+8)  نسخ .bak إلى %ProgramData%\OraxHotel\Database
+9)  منح SQL Server صلاحية قراءة (icacls)
+10) التحقق من وجود قاعدة Hotel_alkheer
+11) استعادة القاعدة من النسخة الاحتياطية (إن لم توجد)
+12) إنشاء حساب admin / Admin@2024! (إن لم يوجد)
+13) كتابة appsettings.json الكامل بكل connection strings
+14) إنشاء start-oraxhotel.cmd
+15) إنشاء uninstall-oraxhotel.cmd
+16) اختصار سطح المكتب
+17) فتح منفذ 5080 في جدار الحماية
+18) تشغيل HotelSys.exe
+19) فتح المتصفح على http://localhost:5080
 
-8) يُشغّل التطبيق تلقائياً ويفتح المتصفح على:
-   http://localhost:5080
-
-بيانات الدخول بعد فتح التطبيق:
+الخطوة 5: الدخول الأول
+---------------------------------
+- العنوان: http://localhost:5080
 - اسم المستخدم: admin
 - كلمة المرور:  Admin@2024!
-(أو حساب المشرف الموجود مسبقًا في النسخة الاحتياطية إن كنتم تفضلون استخدامه)
 
-أوضاع التشغيل:
-- الوضع الصامت (الافتراضي): OraxHotel-Setup.exe
-- الوضع التفاعلي:           OraxHotel-Setup.exe --interactive
-- الوضع التفصيلي:           OraxHotel-Setup.exe --verbose
+الخطوة 6: تقوية الأمان (إجباري للإنتاج)
+---------------------------------
+1. غيّر كلمة مرور admin من داخل التطبيق
+2. غيّر كلمة مرور sa على SQL Server
+3. حدّث appsettings.json بكلمة المرور الجديدة
+4. قيّد منفذ 5080 على LocalSubnet فقط
 
-المتطلبات:
-- Windows 10/11 x64
-- SQL Server 2019+ أو SQL Server Express 2019+ (يثبّت منفصلاً إن لم يوجد)
-- تنزيل SQL Server Express: https://www.microsoft.com/en-us/sql-server/sql-server-downloads
-- صلاحيات Administrator مُفضّلة لفتح منفذ جدار الحماية
+الخطوة 7: التحقق من التثبيت
+---------------------------------
+- التطبيق: %LOCALAPPDATA%\OraxHotel\HotelSys.exe
+- الإعدادات: %LOCALAPPDATA%\OraxHotel\appsettings.json
+- الواجهة: %LOCALAPPDATA%\OraxHotel\wwwroot\
+- النسخة الاحتياطية: %ProgramData%\OraxHotel\Database\
+- الاختصار: %USERPROFILE%\Desktop\Orax Hotel.lnk
+- قاعدة البيانات: SQL Server → Hotel_alkheer
 
-إزالة التطبيق:
-شغّل uninstall-oraxhotel.cmd من مجلد:
-%LOCALAPPDATA%\OraxHotel
-(لا يحذف قاعدة البيانات من SQL Server — احذفها يدوياً إن لزم)
+للتحقق:
+  tasklist | findstr HotelSys.exe
+  netstat -an | findstr :5080
 
-تنبيه أمني:
-- ملف installer-config.json يحوي كلمات مرور فعلية. لا ترفعه إلى مستودع عام.
+الخطوة 8: التشغيل اللاحق
+---------------------------------
+- اختصار سطح المكتب: Orax Hotel
+- أو يدوياً: %LOCALAPPDATA%\OraxHotel\start-oraxhotel.cmd
+
+الخطوة 9: إزالة التثبيت
+---------------------------------
+لإزالة التطبيق فقط:
+  %LOCALAPPDATA%\OraxHotel\uninstall-oraxhotel.cmd
+
+لإزالة كاملة (التطبيق + قاعدة البيانات):
+  1. شغّل uninstall-oraxhotel.cmd أعلاه
+  2. في SSMS: DROP DATABASE Hotel_alkheer;
+  3. احذف: rmdir /s /q "%ProgramData%\OraxHotel"
+  4. احذف قاعدة جدار الحماية:
+     netsh advfirewall firewall delete rule name="OraxHotel-5080"
+
+=====================================================
+الإعدادات الافتراضية
+=====================================================
+
+خادم SQL الافتراضي:    .\SQLEXPRESS
+مستخدم SQL الافتراضي:  sa
+كلمة مرور SQL:         orax055266
+قاعدة البيانات:        Hotel_alkheer
+حساب المشرف:          admin
+كلمة مرور المشرف:      Admin@2024!
+عنوان التطبيق:         http://localhost:5080
+
+=====================================================
+استكشاف الأخطاء (بالترتيب)
+=====================================================
+
+المشكلة 1: لم يتم العثور على SQL Server
+  الحل: ثبّت SQL Server Express ثم شغّل خدمته
+
+المشكلة 2: فشل الاتصال بحساب sa
+  الحل: استخدم OraxHotel-Setup.exe --interactive وأدخل كلمة المرور
+
+المشكلة 3: payload.7z غير متوفر
+  الحل: ابنِ على Windows مع DevExpress عبر Build-Installer.ps1
+
+المشكلة 4: فشل استعادة قاعدة البيانات
+  الحل: شغّل كـ Administrator، تأكد من صلاحية sa
+
+المشكلة 5: لا يعمل http://localhost:5080
+  الحل: شغّل يدوياً: cd %LOCALAPPDATA%\OraxHotel && HotelSys.exe
+
+=====================================================
+تنبيهات أمنية
+=====================================================
+
+- installer-config.json يحوي كلمات مرور فعلية. لا ترفعه إلى مستودع عام.
 - غيّر كلمة مرور sa على خوادم الإنتاج قبل أي نشر علني.
-- استخدم حزمة مُخصّصة لكل عميل عند التوزيع التجاري.
+- لا ترفع OraxHotel-Setup.exe إلى GitHub Releases العامة — يحوي أسراراً.
+- راجع ثغرات Dependabot: https://github.com/Nassaralshabi/oraxhotel2024/security/dependabot
+
+=====================================================
+الدعم
+=====================================================
+
+المستودع: https://github.com/Nassaralshabi/oraxhotel2024
+الإصدارات: https://github.com/Nassaralshabi/oraxhotel2024/releases
+المشاكل: https://github.com/Nassaralshabi/oraxhotel2024/issues

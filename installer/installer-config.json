@@ -64,5 +64,10 @@
     "GrantSqlServiceReadAccess": true,
     "CreateDesktopShortcut": true,
     "RegisterUninstaller": true
+  },
+  "Payload": {
+    "Source": "embedded",
+    "DownloadUrl": "https://github.com/Nassaralshabi/oraxhotel2024/releases/download/windows-installer-v1.0.0/payload.7z",
+    "Sha256": null
   }
 }

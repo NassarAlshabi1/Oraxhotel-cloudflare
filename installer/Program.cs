@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Text;
@@ -55,15 +56,17 @@ internal static class Program
             // 2) استخراج الحزمة
             Directory.CreateDirectory(_tempDir);
             Directory.CreateDirectory(_extractionDir);
-            Log(verbose, "استخراج أداة 7z المضمّنة ...");
-            ExtractResource("7zr.exe", _sevenZipPath);
-            Log(verbose, "استخراج حمولة التطبيق payload.7z ...");
-            ExtractResource("payload.7z", _archivePath);
+            Log(verbose, "تحضير أداة 7z ...");
+            EnsureSevenZip(verbose);
+            Log(verbose, "تحضير حمولة التطبيق payload.7z ...");
+            EnsurePayloadArchive(verbose);
             ExtractArchive(_sevenZipPath, _archivePath, _extractionDir);
 
             string payloadDir = Path.Combine(_extractionDir, "payload");
             if (!File.Exists(Path.Combine(payloadDir, "HotelSys.exe")))
-                throw new FileNotFoundException("ملف HotelSys.exe غير موجود في الحزمة.");
+                throw new FileNotFoundException(
+                    "ملف HotelSys.exe غير موجود في الحزمة. تأكد من أن Build-Installer.ps1 " +
+                    "أنتج الحمولة بشكل صحيح على Windows مع DevExpress مُثبّتاً.");
 
             // 3) نسخ ملفات التطبيق إلى مجلد التثبيت
             Log(verbose, "نسخ ملفات التطبيق إلى: " + _installDir);
@@ -454,6 +457,87 @@ internal static class Program
         source.CopyTo(target);
     }
 
+    private static bool HasEmbeddedResource(string name)
+    {
+        return Assembly.GetExecutingAssembly().GetManifestResourceStream(name) is not null
+            && (Assembly.GetExecutingAssembly().GetManifestResourceStream(name)?.Length ?? 0) > 100;
+    }
+
+    private static void EnsureSevenZip(bool verbose)
+    {
+        if (HasEmbeddedResource("7zr.exe"))
+        {
+            Log(verbose, "  استخدام 7zr.exe المضمّن");
+            ExtractResource("7zr.exe", _sevenZipPath);
+            return;
+        }
+
+        // محاولة العثور على 7z مثبّت محلياً
+        string[] localCandidates =
+        {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "7-Zip", "7zr.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "7-Zip", "7zr.exe"),
+            "7z.exe",
+            "7zr.exe"
+        };
+        foreach (var candidate in localCandidates)
+        {
+            if (File.Exists(candidate))
+            {
+                Log(verbose, "  استخدام 7z محلي: " + candidate);
+                if (Path.IsPathRooted(candidate))
+                    File.Copy(candidate, _sevenZipPath, true);
+                _sevenZipPath = candidate;
+                return;
+            }
+        }
+
+        // تنزيل من 7-zip.org
+        Log(verbose, "  تنزيل 7zr.exe من 7-zip.org ...");
+        using var client = new HttpClient();
+        client.Timeout = TimeSpan.FromMinutes(2);
+        var bytes = client.GetByteArrayAsync("https://www.7-zip.org/a/7zr.exe").GetAwaiter().GetResult();
+        File.WriteAllBytes(_sevenZipPath, bytes);
+    }
+
+    private static void EnsurePayloadArchive(bool verbose)
+    {
+        // 1) محاولة المورد المضمّن
+        if (HasEmbeddedResource("payload.7z"))
+        {
+            Log(verbose, "  استخدام payload.7z المضمّن");
+            ExtractResource("payload.7z", _archivePath);
+            return;
+        }
+
+        // 2) محاولة ملف محلي بجانب المُثبّت
+        string localPayload = Path.Combine(AppContext.BaseDirectory, "payload.7z");
+        if (File.Exists(localPayload) && new FileInfo(localPayload).Length > 1000)
+        {
+            Log(verbose, "  استخدام payload.7z المحلي بجانب المُثبّت");
+            File.Copy(localPayload, _archivePath, true);
+            return;
+        }
+
+        // 3) تنزيل من GitHub Release
+        string? url = _config.Payload?.DownloadUrl;
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            Log(verbose, "  تنزيل payload.7z من: " + url);
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromMinutes(30);
+            var bytes = client.GetByteArrayAsync(url).GetAwaiter().GetResult();
+            File.WriteAllBytes(_archivePath, bytes);
+            return;
+        }
+
+        throw new FileNotFoundException(
+            "payload.7z غير متوفر. إما:\n" +
+            "  - اضمن payload.7z في المُثبّت عبر Build-Installer.ps1 على Windows، أو\n" +
+            "  - ضع ملف payload.7z بجانب OraxHotel-Setup.exe، أو\n" +
+            "  - عيّن Payload.DownloadUrl في installer-config.json لتنزيله من GitHub Release.");
+    }
+
     private static void ExtractArchive(string sevenZipPath, string archivePath, string extractionDir)
     {
         var unzip = new ProcessStartInfo
@@ -663,6 +747,17 @@ public sealed class InstallerConfig
     public AdminSeedConfig AdminSeed { get; set; } = new();
     public SecurityConfig Security { get; set; } = new();
     public BehaviorConfig Behavior { get; set; } = new();
+    public PayloadConfig? Payload { get; set; }
+}
+
+public sealed class PayloadConfig
+{
+    /// <summary>مصدر الحمولة: embedded | local | download</summary>
+    public string Source { get; set; } = "embedded";
+    /// <summary>عنوان تنزيل payload.7z إن لم يكن مضمّناً</summary>
+    public string? DownloadUrl { get; set; }
+    /// <summary>SHA-256 اختياري للتحقق من سلامة التنزيل</summary>
+    public string? Sha256 { get; set; }
 }
 
 public sealed class AppConfig
