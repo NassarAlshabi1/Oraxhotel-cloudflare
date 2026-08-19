@@ -1,124 +1,104 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using DataModels;
 using HotelSys.ViewModel;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelSys.Controllers
 {
     public class authController : Controller
     {
-        // GET: auth
-        public ActionResult login()
+        private readonly HotelAlkheerDB _db;
+        private readonly PasswordHasher<DataModels.AspNetUser> _passwordHasher = new PasswordHasher<DataModels.AspNetUser>();
+
+        public authController(HotelAlkheerDB db)
         {
-            return View();
+            _db = db;
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(int id, [Bind("Username,Password")] LoginViewModel user)
+        [AllowAnonymous]
+        public IActionResult login()
         {
-            //if (id != book.Id)
-            //{
-            //    return NotFound();
-            //}
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    
-                }
-                catch (Exception rr)
-                {
-                    //if (!BookExists(book.Id))
-                    {
-                        return NotFound();
-                    }
-                    //else
-                    //{
-                    //    throw;
-                    //}
-                }
+            if (User.Identity?.IsAuthenticated == true)
                 return RedirectToAction("Index", "Home");
-            }
+
             return View();
         }
 
-        // GET: auth/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: auth/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: auth/Create
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Login([Bind("Username,Password")] LoginViewModel user)
         {
-            try
-            {
-                // TODO: Add insert logic here
+            if (!ModelState.IsValid)
+                return View("login", user);
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
+            string username = user.Username?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(user.Password))
             {
-                return View();
+                ModelState.AddModelError(string.Empty, "يرجى إدخال اسم المستخدم وكلمة المرور.");
+                return View("login", user);
             }
+
+            var identityUser = _db.AspNetUsers.FirstOrDefault(x =>
+                x.UserName == username ||
+                x.NormalizedUserName == username.ToUpperInvariant());
+
+            bool valid = false;
+            if (identityUser != null && !string.IsNullOrWhiteSpace(identityUser.PasswordHash))
+            {
+                var result = _passwordHasher.VerifyHashedPassword(identityUser, identityUser.PasswordHash, user.Password);
+                valid = result != PasswordVerificationResult.Failed;
+            }
+
+            // توافق مع الحسابات القديمة الموجودة في admin_table إذا كانت النسخة الأصلية تستخدمها.
+            if (!valid)
+            {
+                var legacyUser = _db.AdminTables.FirstOrDefault(x =>
+                    x.Username == username &&
+                    x.Password == user.Password &&
+                    (x.Status == null || x.Status == true));
+                if (legacyUser != null)
+                {
+                    identityUser = null;
+                    valid = true;
+                }
+            }
+
+            if (!valid)
+            {
+                ModelState.AddModelError(string.Empty, "اسم المستخدم أو كلمة المرور غير صحيحة.");
+                return View("login", user);
+            }
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.NameIdentifier, identityUser?.Id ?? username),
+                new Claim(ClaimTypes.Role, "admin")
+            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity));
+
+            return RedirectToAction("Index", "Home");
         }
 
-        // GET: auth/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: auth/Edit/5
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Logout()
         {
-            try
-            {
-                // TODO: Add update logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: auth/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: auth/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add delete logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction(nameof(login));
         }
     }
 }

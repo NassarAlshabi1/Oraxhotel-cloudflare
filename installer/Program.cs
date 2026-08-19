@@ -7,12 +7,15 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.Data.SqlClient;
 
 internal static class Program
 {
     private const string AppName = "OraxHotel";
     private const string DatabaseName = "Hotel_alkheer";
+    private const string SqlInstanceName = "SQLEXPRESS";
+    private const string DefaultSqlServer = @".\SQLEXPRESS";
 
     private static int Main()
     {
@@ -26,24 +29,22 @@ internal static class Program
         try
         {
             Console.WriteLine("Orax Hotel - تثبيت النظام وقاعدة البيانات");
-            Console.WriteLine("سيتم استخدام حساب المشرف الموجود داخل قاعدة البيانات المستعادة؛ لن يتم إنشاء حساب admin جديد.");
+            Console.WriteLine("سيتم تثبيت SQL Server Express محلياً عند الحاجة، ثم استعادة حساب المشرف الموجود داخل النسخة الاحتياطية.");
             Console.WriteLine();
-
-            string server = ReadValue("اسم SQL Server", @".\SQLEXPRESS");
-            bool integratedSecurity = ReadYesNo("استخدام Windows Authentication؟", true);
-            string? sqlUser = null;
-            string? sqlPassword = null;
-            if (!integratedSecurity)
-            {
-                sqlUser = ReadValue("اسم مستخدم SQL Server", "sa");
-                sqlPassword = ReadSecret("كلمة مرور SQL Server");
-            }
 
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(extractionDir);
             ExtractResource("7zr.exe", sevenZipPath);
             ExtractResource("payload.7z", archivePath);
+            string sqlExpressMediaPath = Path.Combine(tempDir, "SQLEXPR_x64_ENU.exe");
+            ExtractResource("SQLEXPR_x64_ENU.exe", sqlExpressMediaPath);
             ExtractArchive(sevenZipPath, archivePath, extractionDir);
+
+            EnsureSqlExpress(sqlExpressMediaPath);
+            const string server = DefaultSqlServer;
+            const bool integratedSecurity = true;
+            string? sqlUser = null;
+            string? sqlPassword = null;
 
             string payloadDir = Path.Combine(extractionDir, "payload");
             if (!File.Exists(Path.Combine(payloadDir, "HotelSys.exe")))
@@ -159,6 +160,92 @@ internal static class Program
         }
         Console.WriteLine();
         return new string(chars.ToArray());
+    }
+
+    private static void EnsureSqlExpress(string mediaPath)
+    {
+        string masterConnectionString = BuildConnectionString(DefaultSqlServer, true, null, null, "master");
+
+        // إذا كانت النسخة المحلية مثبتة وتعمل، لا نعيد تثبيتها ولا نلمس قواعدها.
+        if (CanConnect(masterConnectionString)) return;
+
+        TryStartSqlExpressService();
+        if (WaitForConnection(masterConnectionString, TimeSpan.FromSeconds(30))) return;
+
+        if (!File.Exists(mediaPath))
+            throw new FileNotFoundException("وسيط SQL Server Express غير موجود داخل الحزمة.", mediaPath);
+
+        Console.WriteLine("جاري تثبيت SQL Server Express محلياً؛ قد يستغرق ذلك عدة دقائق...");
+        string currentUser = Environment.UserDomainName + "\\" + Environment.UserName;
+        var setup = new ProcessStartInfo
+        {
+            FileName = mediaPath,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        setup.ArgumentList.Add("/Q");
+        setup.ArgumentList.Add("/ACTION=Install");
+        setup.ArgumentList.Add("/FEATURES=SQL");
+        setup.ArgumentList.Add("/INSTANCENAME=" + SqlInstanceName);
+        setup.ArgumentList.Add("/SQLSYSADMINACCOUNTS=" + currentUser);
+        setup.ArgumentList.Add("/SQLSVCSTARTUPTYPE=Automatic");
+        setup.ArgumentList.Add("/TCPENABLED=1");
+        setup.ArgumentList.Add("/IACCEPTSQLSERVERLICENSETERMS");
+
+        using Process process = Process.Start(setup)
+            ?? throw new InvalidOperationException("تعذر تشغيل برنامج تثبيت SQL Server Express.");
+        process.WaitForExit();
+        if (process.ExitCode != 0 && process.ExitCode != 3010)
+            throw new InvalidOperationException("فشل تثبيت SQL Server Express. رمز الخروج: " + process.ExitCode);
+
+        if (!WaitForConnection(masterConnectionString, TimeSpan.FromMinutes(5)))
+            throw new InvalidOperationException("تم تشغيل تثبيت SQL Server Express، لكن خدمة قاعدة البيانات لم تصبح جاهزة خلال المهلة المحددة.");
+    }
+
+    private static bool CanConnect(string connectionString)
+    {
+        try
+        {
+            using var connection = new SqlConnection(connectionString);
+            connection.Open();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool WaitForConnection(string connectionString, TimeSpan timeout)
+    {
+        DateTime deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            if (CanConnect(connectionString)) return true;
+            Thread.Sleep(TimeSpan.FromSeconds(2));
+        }
+        return CanConnect(connectionString);
+    }
+
+    private static void TryStartSqlExpressService()
+    {
+        try
+        {
+            var start = new ProcessStartInfo
+            {
+                FileName = "sc.exe",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            start.ArgumentList.Add("start");
+            start.ArgumentList.Add("MSSQL$" + SqlInstanceName);
+            using var process = Process.Start(start);
+            process?.WaitForExit(15000);
+        }
+        catch
+        {
+            // إذا لم تكن الخدمة موجودة فسيتم تثبيتها في الخطوة التالية.
+        }
     }
 
     private static string BuildConnectionString(string server, bool integratedSecurity, string? user, string? password, string database)

@@ -9,11 +9,14 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <InvariantGlobalization>true</InvariantGlobalization>
     <DebugType>None</DebugType>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
     <EmbeddedResource Include="payload.7z" LogicalName="payload.7z" />
     <EmbeddedResource Include="7zr.exe" LogicalName="7zr.exe" />
+    <EmbeddedResource Include="SQLEXPR_x64_ENU.exe" LogicalName="SQLEXPR_x64_ENU.exe" />
+    <None Include="app.manifest" />
   </ItemGroup>
 </Project>
