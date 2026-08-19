@@ -1,8 +1,6 @@
 bin/
 obj/
 payload/
-payload.7z
-7zr.exe
-*.exe
-*.bak
-*.pdb
+build-output/
+
+# ملفات البناء فقط — .exe و .7z الكبيرة تُرفع عبر Git LFS عبر .gitattributes الجذر
