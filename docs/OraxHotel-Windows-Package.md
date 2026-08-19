@@ -44,6 +44,8 @@ sha256sum OraxHotel-Setup.exe
 
 ## الدعم والمصدر
 
+رابط الإصدار الشامل الحالي: <https://github.com/Nassaralshabi/oraxhotel2024/releases/tag/windows-installer-v1.1.0>
+
 المستودع الخاص: <https://github.com/Nassaralshabi/oraxhotel2024>
 
 الفرع: `feature/windows-installer`
