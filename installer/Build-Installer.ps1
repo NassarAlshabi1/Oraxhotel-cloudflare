@@ -142,8 +142,13 @@ if ((Get-Item $sevenZip).Length -lt 100000) { Write-Error "7zr.exe غير صال
 $payloadStaging = "$outputDir\payload"
 $payloadArchive = "$installerDir\payload.7z"
 if (Test-Path $payloadArchive) { Remove-Item $payloadArchive -Force }
-& $sevenZip a -t7z -mx=5 -mmt=on $payloadArchive "$payloadStaging\*"
-if ($LASTEXITCODE -ne 0) { Write-Error "فشل ضغط الحمولة"; exit 1 }
+# يجب أن يكون المسار الجذري داخل الأرشيف payload\... لأن Program.cs يستخرج إلى extractionDir\payload.
+Push-Location $outputDir
+try {
+    & $sevenZip a -t7z -mx=5 -mmt=on $payloadArchive "payload\*"
+    if ($LASTEXITCODE -ne 0) { Write-Error "فشل ضغط الحمولة"; exit 1 }
+}
+finally { Pop-Location }
 Write-Host "  [OK] payload.7z جاهز ($(Get-Item $payloadArchive | Select-Object -ExpandProperty Length) bytes)" -ForegroundColor Green
 
 # ============================================================================

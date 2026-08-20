@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Data.SqlClient;
@@ -334,20 +337,38 @@ internal static class Program
 
     private static void WriteAppSettings(string installDir, string connectionString)
     {
-        var settings = new
+        string settingsPath = Path.Combine(installDir, "appsettings.json");
+        JsonObject root;
+        if (File.Exists(settingsPath))
         {
-            Logging = new { LogLevel = new { Default = "Information", Microsoft = "Warning", Microsoft_Hosting_Lifetime = "Information" } },
-            ConnectionStrings = new Dictionary<string, string>
+            root = JsonNode.Parse(File.ReadAllText(settingsPath)) as JsonObject
+                ?? throw new InvalidDataException("ملف appsettings.json الموجود في الحزمة ليس JSON object صالحاً.");
+        }
+        else
+        {
+            root = new JsonObject
             {
-                ["NWindConnectionString"] = "XpoProvider=SQLite;Data Source=|DataDirectory|/Data/nwind.db",
-                ["ReportsDataConnectionString"] = "Filename=Data/reportsData.db",
-                ["cc"] = connectionString,
-                ["Hotel_alkheerContext"] = connectionString
-            }
-        };
+                ["Logging"] = new JsonObject
+                {
+                    ["LogLevel"] = new JsonObject
+                    {
+                        ["Default"] = "Information",
+                        ["Microsoft"] = "Warning",
+                        ["Microsoft.Hosting.Lifetime"] = "Information"
+                    }
+                }
+            };
+        }
+
+        var connectionStrings = root["ConnectionStrings"] as JsonObject ?? new JsonObject();
+        connectionStrings["NWindConnectionString"] = "XpoProvider=SQLite;Data Source=|DataDirectory|/Data/nwind.db";
+        connectionStrings["ReportsDataConnectionString"] = "Filename=Data/reportsData.db";
+        connectionStrings["cc"] = connectionString;
+        connectionStrings["Hotel_alkheerContext"] = connectionString;
+        root["ConnectionStrings"] = connectionStrings;
+
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string json = JsonSerializer.Serialize(settings, options).Replace("Microsoft_Hosting_Lifetime", "Microsoft.Hosting.Lifetime");
-        File.WriteAllText(Path.Combine(installDir, "appsettings.json"), json, new UTF8Encoding(false));
+        File.WriteAllText(settingsPath, root.ToJsonString(options), new UTF8Encoding(false));
     }
 
     private static void ExtractResource(string name, string destination)

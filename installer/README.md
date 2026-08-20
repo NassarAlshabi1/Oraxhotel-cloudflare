@@ -37,4 +37,4 @@ dotnet publish Installer.csproj -c Release -r win-x64 `
   -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None
 ```
 
-يجب عدم نشر ملف `appsettings.json` بعد التثبيت إذا كان يحتوي على اتصال SQL Authentication. النسخة المضمنة لا تحتوي كلمة مرور اتصال؛ المُثبّت يكتب اتصال Windows المحلي بعد التهيئة.
+يحافظ المُثبّت على أقسام `appsettings.json` الموجودة في payload، بما فيها قسم `Appwrite`، ويحدّث `ConnectionStrings` فقط إلى اتصال Windows المحلي بعد التهيئة. النسخة المضمنة لا تحتوي كلمة مرور SQL، ولا تعرض النسخة الشاملة شاشة SQL Authentication أو خادم خارجي؛ ذلك يتطلب إصداراً مخصصاً. لا تنشر ملف `appsettings.json` إذا أضيفت إليه لاحقاً أسرار أو كلمات مرور.
