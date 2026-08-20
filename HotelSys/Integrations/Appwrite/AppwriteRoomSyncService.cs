@@ -3,11 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using DataModels;
@@ -22,18 +18,18 @@ namespace HotelSys.Integrations.Appwrite;
 /// </summary>
 public sealed class AppwriteRoomSyncService
 {
-    private readonly HttpClient _httpClient;
+    private readonly AppwriteRestClient _client;
     private readonly HotelAlkheerDB _db;
     private readonly AppwriteSyncOptions _options;
     private readonly ILogger<AppwriteRoomSyncService> _logger;
 
     public AppwriteRoomSyncService(
-        HttpClient httpClient,
+        AppwriteRestClient client,
         HotelAlkheerDB db,
         IOptions<AppwriteSyncOptions> options,
         ILogger<AppwriteRoomSyncService> logger)
     {
-        _httpClient = httpClient;
+        _client = client;
         _db = db;
         _options = options.Value;
         _logger = logger;
@@ -46,7 +42,7 @@ public sealed class AppwriteRoomSyncService
             return AppwriteRoomSyncResult.Disabled("Appwrite integration is disabled or incomplete.");
         }
 
-        var remoteDocuments = await ListRemoteRoomsAsync(cancellationToken);
+        var remoteDocuments = (await _client.ListDocumentsAsync(_options.RoomsCollectionId, cancellationToken)).Documents.ToList();
         var remoteWithServerIds = remoteDocuments
             .Where(document => TryReadInt(document.Data, "serverId", out _))
             .Select(document => new { Document = document, ServerId = ReadInt(document.Data, "serverId") })
@@ -142,14 +138,13 @@ public sealed class AppwriteRoomSyncService
 
             try
             {
+                await _client.UpsertDocumentAsync(_options.RoomsCollectionId, documentId, payload, cancellationToken);
                 if (remote is null)
                 {
-                    await CreateDocumentAsync(documentId, payload, cancellationToken);
                     result.Created++;
                 }
                 else
                 {
-                    await UpdateDocumentAsync(documentId, payload, cancellationToken);
                     result.Updated++;
                 }
             }
@@ -163,68 +158,6 @@ public sealed class AppwriteRoomSyncService
         result.RemoteBeforeSync = remoteDocuments.Count;
         return result;
     }
-
-    private async Task<IReadOnlyList<AppwriteDocument>> ListRemoteRoomsAsync(CancellationToken cancellationToken)
-    {
-        using var request = CreateRequest(HttpMethod.Get, DocumentCollectionUrl());
-        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException($"Appwrite list rooms failed ({(int)response.StatusCode}): {TrimError(body)}");
-        }
-
-        var result = JsonSerializer.Deserialize<AppwriteDocumentList>(body, JsonOptions) ?? new AppwriteDocumentList();
-        if (result.Total > result.Documents.Count)
-        {
-            throw new InvalidOperationException($"Appwrite rooms collection has {result.Total} documents but the first response returned only {result.Documents.Count}. Pagination must be configured before syncing.");
-        }
-
-        return result.Documents;
-    }
-
-    private async Task CreateDocumentAsync(string documentId, IReadOnlyDictionary<string, object?> data, CancellationToken cancellationToken)
-    {
-        var body = JsonSerializer.Serialize(new { documentId, data }, JsonOptions);
-        using var request = CreateRequest(HttpMethod.Post, DocumentCollectionUrl());
-        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-        await SendEnsuringSuccessAsync(request, cancellationToken, "create room");
-    }
-
-    private async Task UpdateDocumentAsync(string documentId, IReadOnlyDictionary<string, object?> data, CancellationToken cancellationToken)
-    {
-        var body = JsonSerializer.Serialize(new { data }, JsonOptions);
-        using var request = CreateRequest(HttpMethod.Put, DocumentUrl(documentId));
-        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-        await SendEnsuringSuccessAsync(request, cancellationToken, "update room");
-    }
-
-    private async Task SendEnsuringSuccessAsync(HttpRequestMessage request, CancellationToken cancellationToken, string operation)
-    {
-        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException($"Appwrite {operation} failed ({(int)response.StatusCode}): {TrimError(body)}");
-        }
-    }
-
-    private HttpRequestMessage CreateRequest(HttpMethod method, string url)
-    {
-        var request = new HttpRequestMessage(method, url);
-        request.Headers.Add("X-Appwrite-Project", _options.ProjectId);
-        request.Headers.Add("X-Appwrite-Key", _options.ApiKey);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        return request;
-    }
-
-    private string DocumentCollectionUrl() =>
-        $"{_options.Endpoint.TrimEnd('/')}/databases/{Uri.EscapeDataString(_options.DatabaseId)}/collections/{Uri.EscapeDataString(_options.RoomsCollectionId)}/documents";
-
-    private string DocumentUrl(string documentId) =>
-        $"{DocumentCollectionUrl()}/{Uri.EscapeDataString(documentId)}";
-
-    private static string TrimError(string body) => body.Length <= 500 ? body : body[..500];
 
     private static bool IsTrustedServerDocument(AppwriteDocument document)
     {
@@ -270,22 +203,6 @@ public sealed class AppwriteRoomSyncService
         return false;
     }
 
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
-    private sealed class AppwriteDocumentList
-    {
-        [JsonPropertyName("total")] public int Total { get; set; }
-        [JsonPropertyName("documents")] public List<AppwriteDocument> Documents { get; set; } = new();
-    }
-
-    private sealed class AppwriteDocument
-    {
-        [JsonPropertyName("$id")] public string Id { get; set; } = string.Empty;
-        [JsonPropertyName("data")] public Dictionary<string, JsonElement> Data { get; set; } = new(StringComparer.OrdinalIgnoreCase);
-    }
 }
 
 public sealed class AppwriteRoomSyncResult

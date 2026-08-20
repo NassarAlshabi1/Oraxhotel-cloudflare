@@ -2,13 +2,24 @@
 
 ## القرار المعماري
 
-يعمل **Orax Hotel** كتطبيق الكمبيوتر ومصدر بيانات التشغيل المحلي في SQL Server، بينما يعمل **Flutter** كتطبيق الهاتف ويستمر في استخدام قاعدة SQLite المحلية مع `AppwriteSyncManager` الموجود في المشروع. تقوم خدمة التكامل الجديدة في Orax بنشر كتالوج الغرف إلى collection `rooms` في Appwrite Cloud، ثم يسحب Flutter التغييرات عبر مزامنته الحالية. لا يتصل الهاتف مباشرةً بقاعدة SQL Server.
+يعمل **Orax Hotel** كتطبيق الكمبيوتر ومصدر بيانات التشغيل المحلي في SQL Server، بينما يعمل **Flutter** كتطبيق الهاتف ويستمر في استخدام قاعدة SQLite المحلية مع `AppwriteSyncManager` الموجود في المشروع. تقوم خدمات التكامل في Orax بنشر بيانات الغرف والحجوزات والنزلاء والمدفوعات إلى Appwrite Cloud، ثم يسحب Flutter التغييرات عبر مزامنته الحالية. لا يتصل الهاتف مباشرةً بقاعدة SQL Server.
 
-هذا هو أول تدفق رأسي قابل للاختبار: **SQL Server/Orax → Appwrite Cloud → Flutter**. لم يتم الادعاء بأن الحجوزات والمدفوعات وبقية الجداول أصبحت متزامنة؛ ستحتاج كل مجموعة إلى محول حقول وعقد تعارض خاص بها.
+هذا هو التدفق الرأسي المعتمد: **SQL Server/Orax → Appwrite Cloud → Flutter**. الكتابة العكسية من Flutter إلى Orax ليست جزءاً من هذا الإصدار؛ ولا يجوز للهاتف الكتابة في جداول Orax مباشرة، بل يلزم لاحقاً API أعمال صريح ومراجع للصلاحيات والتعارضات.
 
-## ما تم تنفيذه
+## الكيانات ومصادر الحقيقة
 
-أضيفت في Orax خدمة `AppwriteRoomSyncService` التي تقرأ الغرف من `RoomsTable`، وتستخرج اسم نوع الغرفة من `TypeRoomsTable`، والسعر من `PriceRoomsTable`، والحالة الحالية من `StatusCurrentTable`. بعد ذلك تستخدم REST API الخادمية في Appwrite لإنشاء أو تحديث مستند الغرفة في collection `rooms`. يطابق المستند أولاً بواسطة `serverId`، ثم بواسطة `roomNumber` عند عدم وجود serverId، بشرط أن يكون رقم الغرفة وحيداً في Appwrite. إذا وُجد أكثر من مستند لنفس الهوية فلا تختار الخدمة مستنداً عشوائياً؛ تسجل تعارضاً وتتخطى الغرفة. ويستخدم معرفاً ثابتاً بصيغة `orax-room-{id}` عند عدم وجود مستند سابق، مع إنشاء `localUuid` بصيغة UUID قياسية حتى يقبله `IdResolver` في Flutter. أضيف `OraxRoomStatusMapper` حتى لا تصل الرموز الرقمية الخاصة بـ Orax إلى الهاتف:
+| الكيان | مصدر Orax | Collection | هوية Appwrite | الحقل الخادمي |
+|---|---|---|---|---|
+| الغرفة | `RoomsTable` مع النوع والسعر والحالة | `rooms` | `orax-room-{id}` أو المستند المطابق الحالي | `serverId` |
+| الحجز | `RecetionTable` مع الغرفة والنزيل | `bookings` | `orax-booking-{id}` أو مستند legacy المطابق | `serverBookingId` |
+| النزيل | `CustomerTable` المرتبط بـ `MyCustomer` | `guest_infos` | `orax-guest-{customerId}` | `serverId` |
+| الدفعة | `BillsTable` المرتبط بحجز وذو `PayAmount > 0` | `payments` | `orax-payment-{billId}` | `serverPaymentId` |
+
+لكل سجل ينشئه Orax قيمة `localUuid` حتمية مشتقة من نوع الكيان ورقم السجل. بذلك تبقى قيمة UUID ثابتة بين دورات المزامنة ولا تعتمد على auto-increment محلي في هاتف Flutter.
+
+## مزامنة الغرف
+
+تقرأ `AppwriteRoomSyncService` الغرف من `RoomsTable`، وتستخرج اسم نوع الغرفة من `TypeRoomsTable`، والسعر من أحدث سجل صالح في `PriceRoomsTable`، والحالة الحالية من أحدث سجل في `StatusCurrentTable`. يطابق المستند أولاً بواسطة `serverId`، ثم بواسطة `roomNumber` عند عدم وجود serverId، بشرط أن تكون الهوية وحيدة وأن يكون المستند موثقاً كمستند Orax أو server. إذا وُجد أكثر من مستند لنفس الهوية فلا تختار الخدمة مستنداً عشوائياً، بل تسجل تعارضاً وتتخطى الغرفة.
 
 | رمز Orax | المعنى المثبت في Orax | القيمة المنشورة لـ Flutter |
 |---|---|---|
@@ -18,30 +29,97 @@
 | `4` | حجز بدون تسجيل دخول | `مؤقت` |
 | `5` | مشغولة | `محجوزة` |
 
-هذا التحويل ضروري لأن `StatusUtils` في Flutter يتعرف على `شاغرة` و`محجوزة` و`maintenance` ولا يتعامل مع أرقام Orax كحالات عرض معيارية.
+هذا التحويل ضروري لأن `StatusUtils` في Flutter يتعرف على الحالات المعيارية ولا يتعامل مع رموز Orax الرقمية كحالات عرض.
 
-أضيفت خدمة خلفية `AppwriteRoomSyncHostedService`. عند تفعيل `AutoSyncRooms` تنتظر 15 ثانية بعد تشغيل Orax، ثم تنفذ المزامنة وتعيدها حسب `SyncIntervalMinutes`. فشل Appwrite لا يوقف Orax؛ تسجل الخدمة الخطأ وتعيد المحاولة في الدورة التالية.
+## مزامنة الحجوزات
 
-أضيفت نقاط API إدارية خلف مصادقة Orax الحالية:
+تقرأ `AppwriteBookingSyncService` سجلات `RecetionTable`، ثم تربط `IdRoom` بـ `RoomsTable` و`IdMyCustomer` بـ `MyCustomer` ثم `CustomerTable`. تنشر الخدمة بيانات الغرفة واسم النزيل وهاتفه وجنسيته ووثيقة هويته وتواريخ الإقامة والتواريخ الفعلية والحالة وعدد الليالي وأيام الفندق.
+
+حالة الحجز منشورة وفق الخريطة المثبتة في `ReceptionService`:
+
+| شرط Orax | قيمة Flutter |
+|---|---|
+| `Status=1` | `مؤقت` |
+| `Status=2` مع `IsChechin=true` | `checked_in` |
+| `Status=2` قبل تسجيل الدخول | `مؤقت` |
+| `Status=3` | `checked_out` |
+| `Status=4` | `cancelled` |
+
+تستخدم المزامنة `serverBookingId` كهوية أساسية. ولتسوية المستندات القديمة التي لا تحمل هذا الحقل، يُستخدم fallback وحيد على `roomNumber + checkinDate`; إذا تكرر المفتاح تتخطى الخدمة السجل وتسجل تعارضاً. أما السجلات التي لا تطابق شيئاً فتستخدم المعرف الثابت `orax-booking-{id}`.
+
+يُحسب `hotelDayCheckin` و`hotelDayCheckout` بقاعدة Flutter نفسها: بداية اليوم الفندقي عند الساعة 14:01، وما قبلها ينتمي إلى اليوم التقويمي السابق. ويُحسب الحد الأدنى لعدد الليالي بقاعدة `Time.nightsWithCutoff` المكافئة في الخادم.
+
+## مزامنة معلومات النزلاء
+
+تقرأ `AppwriteGuestInfoSyncService` سجلات `MyCustomer` مع سجل `CustomerTable` المرتبط، وتنشر الاسم والجنسية ونوع ورقم الإثبات وتاريخ ومكان الإصدار والملاحظات. تختار الخدمة الغرفة من أحدث حجز نشط للنزيل، مع استبعاد الحجوزات الخارجة أو الملغاة. إذا لم يوجد حجز نشط، تُرسل `roomNumber` كسلسلة فارغة دون اختلاق غرفة.
+
+هوية ملف النزيل هي `CustomerTable.Id` وليس `MyCustomer.Id`، لأن `CustomerTable` هو مصدر حقول الهوية نفسها. عند وجود تكرار في `serverId` البعيد، لا يتم الاختيار العشوائي ويُسجل تعارض.
+
+## مزامنة المدفوعات
+
+تقرأ `AppwritePaymentSyncService` الفواتير التي تحقق الشرطين معاً: `IdReception IS NOT NULL` و`PayAmount > 0`. لا تُنشر الفواتير غير المرتبطة بحجز أو ذات الدفع الصفري حتى لا تظهر إيرادات وهمية في الهاتف.
+
+| حقل Orax | حقل Appwrite |
+|---|---|
+| `BillsTable.Id` | `serverPaymentId` |
+| `IdReception` | `serverBookingId` و`bookingUuidCache` الحتمي |
+| `PayAmount` | `amount` |
+| `Date` | `paymentDate` و`hotelDayKey` |
+| `TypePay` | `paymentMethod` |
+| `NumReference` | `referenceNumber` |
+| `Note` | `notes` |
+| `RestAmount > 0` | `isPendingBalance=true` |
+
+تُنشر الدفعة كمستند immutable من مصدر `server` و`sync_origin=orax`. لا يُجرى حذف أو عكس دفعة في هذه المرحلة، ولا يُفترض أن `BillsTable` يغطي سندات أخرى مثل `BondTable` دون تحقق مستقل من مخطط قاعدة البيانات.
+
+## REST وpagination
+
+أضيف `AppwriteRestClient` مشترك لكل الكيانات. يستخدم العميل headers الخادمية المطلوبة، وينفذ upsert عبر `PUT /documents/{documentId}` ببيانات `data` فقط، ثم يستخدم `POST` مع `documentId` عند عدم وجود المستند. وتستخدم قراءة المستندات صيغة Appwrite JSON queries الرسمية:
+
+```text
+queries[]={"method":"limit","values":[100]}
+queries[]={"method":"offset","values":[0]}
+```
+
+يستمر العميل حتى جمع العدد الموجود في `total`، ويتوقف بخطأ واضح إذا انتهت صفحة قصيرة قبل اكتمال العدد أو لم يتطابق العدد النهائي. لا تعتمد خدمات الكيانات على استجابة الصفحة الأولى فقط.
+
+## الخدمات ونقاط الإدارة
+
+تُسجل الخدمات الأربعة كـ scoped services، ويعمل لكل دورة HostedService ضمن scope مستقل حتى لا يُستخدم اتصال قاعدة البيانات بعد انتهاء عمره. خدمة الغرف الحالية مستقلة، بينما تنفذ `AppwriteCoreSyncHostedService` الحجوزات ثم النزلاء ثم المدفوعات حسب مفاتيح التشغيل التلقائي.
 
 | المسار | الوظيفة |
 |---|---|
-| `GET /api/appwrite/health` | يعرض حالة تفعيل Appwrite وcollection والفحص الأساسي للإعدادات |
-| `POST /api/appwrite/sync/rooms` | يشغّل مزامنة الغرف فوراً ويعيد أعداد الإنشاء والتحديث والتعارضات والفشل |
+| `GET /api/appwrite/health` | يعرض حالة Appwrite، collections، ومفاتيح التشغيل التلقائي دون كشف المفتاح |
+| `POST /api/appwrite/sync/rooms` | مزامنة الغرف فوراً |
+| `POST /api/appwrite/sync/bookings` | مزامنة الحجوزات فوراً |
+| `POST /api/appwrite/sync/guests` | مزامنة ملفات النزلاء فوراً |
+| `POST /api/appwrite/sync/payments` | مزامنة المدفوعات فوراً |
 
-Flutter لا يحتاج إلى عميل API جديد لهذا التدفق؛ `AppwriteService` يستخدم `Databases` و`AppwriteSyncManager` يقرأ collection `rooms`، بينما `RoomsAdapter` يتعرف على `roomNumber`, `type`, `price`, `status`, `serverId` وحقول المزامنة التي تنشرها خدمة Orax.
+جميع نقاط المزامنة خلف مصادقة Orax الحالية عبر `[Authorize]`. Flutter لا يحتاج إلى استدعائها؛ يقرأ Appwrite بواسطة `AppwriteSyncManager` وadapters الموجودة في مجلد `mobile`.
 
 ## إعداد Orax
 
-يوجد قسم `Appwrite` في `HotelSys/appsettings.json` يتضمن endpoint وproject/database IDs وcollection ID وفترة المزامنة. يمكن تعطيل التكامل عبر `Enabled: false`، أو تعطيل التشغيل التلقائي فقط عبر `AutoSyncRooms: false` مع الإبقاء على endpoint اليدوي متاحاً للحساب المصادق.
+يتضمن قسم `Appwrite` في `HotelSys/appsettings.json` مفاتيح `AutoSyncRooms` و`AutoSyncBookings` و`AutoSyncGuests` و`AutoSyncPayments`، ومعرفات collections الأربع، و`PageSize` الافتراضي 100، وفترة المزامنة. يمكن تعطيل التكامل عبر `Enabled: false`، أو تعطيل أي مزامنة تلقائية مع إبقاء endpoint اليدوي متاحاً للحساب المصادق.
 
-يجب تشغيل Orax بعد توافر اتصال SQL Server. عند التشغيل، يراجع السجل عن رسائل `Appwrite room sync completed`. ويمكن اختبار الحالة من جلسة تسجيل دخول Orax عبر `/api/appwrite/health`، ثم تشغيل `POST /api/appwrite/sync/rooms` عند الحاجة.
+عند التشغيل، يراجع المسؤول رسائل `Appwrite room sync completed` ورسائل `Appwrite bookings/guest_infos/payments sync completed`. يجب تشغيل Orax بعد توافر SQL Server؛ فاختبار دورة البيانات الحقيقية يتطلب بيئة Windows تحتوي SQL Server وقاعدة Orax الفعلية.
 
-## حدود الإصدار الحالي
+## اختبارات منفذة ونتائجها
 
-النسخة الحالية تنفذ مزامنة **الغرف فقط** من Orax إلى Appwrite. لا تكتب الخدمة حجوزات أو نزلاء أو مدفوعات، ولا تنفذ بعد مزامنة ثنائية الاتجاه من Flutter إلى SQL Server. كما أن قراءة rooms تستخدم الاستجابة الكاملة وتتحقق من أن عدد المستندات المستلم يساوي `total`؛ إذا تجاوزت collection الحد الافتراضي في Appwrite، تتوقف المزامنة برسالة واضحة بدلاً من إسقاط سجلات بصمت. يجب معالجة pagination في مرحلة الكيانات التالية قبل اعتمادها على مجموعات أكبر.
+| الاختبار | النتيجة |
+|---|---|
+| بناء `HotelSys.csproj` للهدف `win-x64` | ناجح: `0 Error(s)`؛ التحذيرات القائمة من Views وأكواد قديمة خارج التكامل |
+| قراءة collections بالت pagination JSON الرسمية | `rooms=20`, `bookings=200`, `payments=1125`, `guest_infos=119`، وكلها HTTP 200 |
+| probe إنشاء وحذف `rooms` | إنشاء HTTP 201، حذف HTTP 204 |
+| probe إنشاء وحذف `bookings` | إنشاء HTTP 201، حذف HTTP 204 |
+| probe إنشاء وحذف `payments` | إنشاء HTTP 201، حذف HTTP 204 |
+| probe إنشاء وحذف `guest_infos` | إنشاء HTTP 201، حذف HTTP 204 |
+| بقاء مستندات probe | لا تُترك مستندات probe؛ التنظيف ينفذ بعد كل اختبار |
+| تشغيل Orax مع SQL Server فعلي | لم يُنفذ في Linux؛ يلزم Windows |
+| دورة Flutter على Android/iOS | لم تُنفذ لأن Flutter SDK غير مثبت في sandbox الحالية |
 
-اختُبر اتصال المشروع الحالي بـ Appwrite Cloud فعلياً: collection `rooms` أعادت 20 مستنداً، وجميعها تحمل `serverId=null` مع `origin=server`، كما اجتاز payload الكامل اختباراً مؤقتاً للإنشاء ثم التحديث عبر PUT ثم الحذف، ولم يترك الاختبار مستنداً. كما اجتاز `OraxRoomStatusMapper` probe حتمياً لجميع الرموز 1–5 وحالات fallback. اجتاز HotelSys البناء وpublish موجهاً إلى `win-x64` مع `0 Error(s)`؛ التحذيرات المتبقية من Views قديمة وليست من ملفات التكامل. اختبار تشغيل Orax مع SQL Server الفعلي واختبار دورة Flutter على جهاز Android أو iOS يظلان مطلوبين خارج بيئة Linux الحالية.
+## الحدود المتبقية
+
+هذا الإصدار **أحادي الاتجاه** من Orax إلى Appwrite إلى Flutter. لا ينفذ الكتابة العكسية من Flutter إلى SQL Server، ولا يقرر تعارضات مالية بين مصادر متعددة. كما أن اختبار التشغيل النهائي للمثبت وSQL Server ودورة تسجيل الدخول والمزامنة يجب أن يتم على Windows فعلي، بينما يبقى Linux مناسباً للبناء والفحص الساكن واختبارات REST الخارجية.
 
 ## المراجع
 

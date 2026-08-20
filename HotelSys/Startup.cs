@@ -57,8 +57,13 @@ namespace HotelSys {
 
 
             services.Configure<AppwriteSyncOptions>(Configuration.GetSection("Appwrite"));
-            services.AddHttpClient<AppwriteRoomSyncService>();
+            services.AddHttpClient<AppwriteRestClient>();
+            services.AddScoped<AppwriteRoomSyncService>();
+            services.AddScoped<AppwriteBookingSyncService>();
+            services.AddScoped<AppwriteGuestInfoSyncService>();
+            services.AddScoped<AppwritePaymentSyncService>();
             services.AddHostedService<AppwriteRoomSyncHostedService>();
+            services.AddHostedService<AppwriteCoreSyncHostedService>();
 
             services.AddControllersWithViews();
 

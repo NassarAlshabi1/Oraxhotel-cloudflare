@@ -12,11 +12,18 @@ public sealed class AppwriteSyncOptions
 {
     public bool Enabled { get; set; }
     public bool AutoSyncRooms { get; set; }
+    public bool AutoSyncBookings { get; set; }
+    public bool AutoSyncGuests { get; set; }
+    public bool AutoSyncPayments { get; set; }
     public string Endpoint { get; set; } = string.Empty;
     public string ProjectId { get; set; } = string.Empty;
     public string DatabaseId { get; set; } = string.Empty;
     public string ApiKey { get; set; } = string.Empty;
     public string RoomsCollectionId { get; set; } = "rooms";
+    public string BookingsCollectionId { get; set; } = "bookings";
+    public string PaymentsCollectionId { get; set; } = "payments";
+    public string GuestInfosCollectionId { get; set; } = "guest_infos";
+    public int PageSize { get; set; } = 100;
     public int SyncIntervalMinutes { get; set; } = 15;
 
     public bool IsConfigured =>
@@ -25,5 +32,8 @@ public sealed class AppwriteSyncOptions
         !string.IsNullOrWhiteSpace(ProjectId) &&
         !string.IsNullOrWhiteSpace(DatabaseId) &&
         !string.IsNullOrWhiteSpace(ApiKey) &&
-        !string.IsNullOrWhiteSpace(RoomsCollectionId);
+        !string.IsNullOrWhiteSpace(RoomsCollectionId) &&
+        !string.IsNullOrWhiteSpace(BookingsCollectionId) &&
+        !string.IsNullOrWhiteSpace(PaymentsCollectionId) &&
+        !string.IsNullOrWhiteSpace(GuestInfosCollectionId);
 }
