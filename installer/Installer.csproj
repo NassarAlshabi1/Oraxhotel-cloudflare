@@ -8,7 +8,6 @@
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <InvariantGlobalization>true</InvariantGlobalization>
     <DebugType>None</DebugType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
