@@ -36,6 +36,12 @@
 sha256sum OraxHotel-Setup.exe
 ```
 
+إصدار التسليم الجديد المبني بعد إصلاحات المثبت:
+
+| الملف | الحجم | SHA-256 |
+|---|---:|---|
+| `OraxHotel-Setup.exe` | 425941254 bytes | `86903f62a563aab66caa636df8e771ef64c0d9f5a00c58927799f176da7dac67` |
+
 يجب مقارنة الناتج مع بصمة أصل GitHub Release المنشورة من مالك المستودع. لا تعتمد على بصمة قديمة إذا تغير ملف EXE أو إصدار الحزمة.
 
 ## المتطلبات
@@ -44,10 +50,10 @@ sha256sum OraxHotel-Setup.exe
 
 ## الدعم والمصدر
 
-رابط الإصدار الشامل الحالي: <https://github.com/Nassaralshabi/oraxhotel2024/releases/tag/windows-installer-v1.1.0>
+رابط الإصدار الشامل الحالي: <https://github.com/Nassaralshabi/oraxhotel2024/releases/tag/windows-installer-v1.2.0>
 
 المستودع الخاص: <https://github.com/Nassaralshabi/oraxhotel2024>
 
-الفرع: `feature/windows-installer`
+الفرع الذي يحتوي آخر إصلاحات التكامل والمثبت: `feature/orax-flutter-appwrite-integration`
 
 صفحة Microsoft الرسمية لوسيط SQL Server Express: <https://www.microsoft.com/en-us/download/details.aspx?id=104781>
