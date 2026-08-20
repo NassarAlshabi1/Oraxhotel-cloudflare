@@ -45,6 +45,8 @@
 | `Status=3` | `checked_out` |
 | `Status=4` | `cancelled` |
 
+تم تدقيق `mobile/lib/utils/status_utils.dart` بعد تثبيت هذه الخريطة: أضيفت `checked_in` و`checked-in` إلى الحالات النشطة وحالات إشغال الغرفة، بينما تبقى `checked_out` و`cancelled` خارج الحالات النشطة حتى لا تظهر الإقامات المنتهية أو الملغاة كحجوزات قائمة.
+
 تستخدم المزامنة `serverBookingId` كهوية أساسية. ولتسوية المستندات القديمة التي لا تحمل هذا الحقل، يُستخدم fallback وحيد على `roomNumber + checkinDate` للمستندات الموثقة كمصدر server أو legacy بلا مصدر. المستندات `origin=local` لا تدخل في المطابقة حتى لا يكتب Orax فوق حجز أنشأه الهاتف. إذا تكرر المفتاح تتخطى الخدمة السجل وتسجل تعارضاً. أما السجلات التي لا تطابق شيئاً فتستخدم المعرف الثابت `orax-booking-{id}`.
 
 يُحسب `hotelDayCheckin` و`hotelDayCheckout` بقاعدة Flutter نفسها: بداية اليوم الفندقي عند الساعة 14:01، وما قبلها ينتمي إلى اليوم التقويمي السابق. ويُحسب الحد الأدنى لعدد الليالي بقاعدة `Time.nightsWithCutoff` المكافئة في الخادم.
@@ -123,6 +125,10 @@ queries[]={"method":"offset","values":[0]}
 | بقاء مستندات probe | لا تُترك مستندات probe؛ التنظيف ينفذ بعد كل اختبار |
 | تشغيل Orax مع SQL Server فعلي | لم يُنفذ في Linux؛ يلزم Windows |
 | دورة Flutter على Android/iOS | لم تُنفذ لأن Flutter SDK غير مثبت في sandbox الحالية |
+
+## ملاحظة Appwrite الرسمية
+
+تستخدم خدمة Orax API key خادمية من جهة ASP.NET Core، ولا يُمرر هذا الرأس من Orax إلى Flutter. توصي وثائق Appwrite الرسمية باستخدام API keys في تكاملات الخادم فقط، كما توصي باستخدام cursor pagination للبيانات كثيرة التغير؛ لذلك يبقى `limit/offset` الحالي مناسباً لمرحلة seed المحدودة، ويجب إعادة تقييمه إذا أصبحت collections كبيرة أو كثيرة التغير. راجع ملف البحث `docs/RESEARCH-APPWRITE-REST-2026-08-20.md` للمصادر الرسمية.
 
 ## حدود الكتابة العكسية وسلامة outbox
 

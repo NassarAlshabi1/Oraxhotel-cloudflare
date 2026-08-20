@@ -19,6 +19,8 @@ class StatusUtils {
     'محجوز temporarily',
     'نشط',
     'active',
+    'checked_in',
+    'checked-in',
     'مؤقت',
     'provisional',
   }.map(_normalize).toSet();
@@ -31,6 +33,8 @@ class StatusUtils {
     'confirmed',
     'قيد الحجز',
     'in_progress',
+    'checked_in',
+    'checked-in',
     'مؤقت',
     'provisional',
   }.map(_normalize).toSet();
@@ -44,6 +48,8 @@ class StatusUtils {
     'confirmed',
     'قيد الحجز',
     'in_progress',
+    'checked_in',
+    'checked-in',
     'مؤقت',
     'provisional',
   ];
