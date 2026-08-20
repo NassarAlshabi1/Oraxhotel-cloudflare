@@ -173,7 +173,14 @@ internal static class Program
         if (CanConnect(masterConnectionString)) return;
 
         TryStartSqlExpressService();
-        if (WaitForConnection(masterConnectionString, TimeSpan.FromSeconds(30))) return;
+        // قد تكون خدمة SQLEXPRESS موجودة لكنها لا تزال في مرحلة بدء التشغيل
+        // أو recovery بعد تثبيت SQL حديثاً. لا نعيد تشغيل setup فوق instance
+        // موجودة؛ ننتظر جاهزية الاتصال مدة كافية ثم نرجع بخطأ تشخيصي واضح.
+        if (SqlExpressServiceExists())
+        {
+            if (WaitForConnection(masterConnectionString, TimeSpan.FromMinutes(5))) return;
+            throw new InvalidOperationException("خدمة SQLEXPRESS موجودة، لكن اتصال SQL لم يصبح جاهزاً خلال 5 دقائق.");
+        }
 
         if (!File.Exists(mediaPath))
             throw new FileNotFoundException("وسيط SQL Server Express غير موجود داخل الحزمة.", mediaPath);
@@ -203,6 +210,28 @@ internal static class Program
 
         if (!WaitForConnection(masterConnectionString, TimeSpan.FromMinutes(5)))
             throw new InvalidOperationException("تم تشغيل تثبيت SQL Server Express، لكن خدمة قاعدة البيانات لم تصبح جاهزة خلال المهلة المحددة.");
+    }
+
+    private static bool SqlExpressServiceExists()
+    {
+        try
+        {
+            var query = new ProcessStartInfo
+            {
+                FileName = "sc.exe",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            query.ArgumentList.Add("query");
+            query.ArgumentList.Add("MSSQL$" + SqlInstanceName);
+            using var process = Process.Start(query);
+            process?.WaitForExit(15000);
+            return process?.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static bool CanConnect(string connectionString)
