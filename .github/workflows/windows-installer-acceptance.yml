@@ -69,7 +69,7 @@ jobs:
           } while (($null -eq $service -or $service.Status -ne 'Running') -and (Get-Date) -lt $deadline)
           if ($null -eq $service -or $service.Status -ne 'Running') { throw 'SQLEXPRESS did not become Running after prerequisite installation.' }
           $sqlConnection = New-Object System.Data.SqlClient.SqlConnection
-          $sqlConnection.ConnectionString = 'Server=.\\SQLEXPRESS;Database=master;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=10'
+          $sqlConnection.ConnectionString = 'Server=.\SQLEXPRESS;Database=master;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=10'
           $connectionReady = $false
           $lastSqlError = $null
           for ($attempt = 1; $attempt -le 60; $attempt++) {
