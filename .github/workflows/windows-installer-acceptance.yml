@@ -148,6 +148,7 @@ jobs:
         with:
           name: orax-windows-acceptance-${{ github.run_id }}
           path: |
+            ${{ github.workspace }}\installer\build-output\installer\OraxHotel-Setup.exe
             ${{ runner.temp }}\orax-installer.log
             ${{ runner.temp }}\orax-installer.stdout.log
             ${{ runner.temp }}\orax-installer.stderr.log
