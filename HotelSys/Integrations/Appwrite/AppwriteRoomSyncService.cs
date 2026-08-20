@@ -47,15 +47,32 @@ public sealed class AppwriteRoomSyncService
         }
 
         var remoteDocuments = await ListRemoteRoomsAsync(cancellationToken);
-        var remoteByServerId = remoteDocuments
+        var remoteWithServerIds = remoteDocuments
             .Where(document => TryReadInt(document.Data, "serverId", out _))
-            .GroupBy(document => ReadInt(document.Data, "serverId"))
-            .ToDictionary(group => group.Key, group => group.First());
-        var remoteByRoomNumber = remoteDocuments
+            .Select(document => new { Document = document, ServerId = ReadInt(document.Data, "serverId") })
+            .ToList();
+        var ambiguousServerIds = remoteWithServerIds
+            .GroupBy(item => item.ServerId)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToHashSet();
+        var remoteByServerId = remoteWithServerIds
+            .Where(item => !ambiguousServerIds.Contains(item.ServerId))
+            .ToDictionary(item => item.ServerId, item => item.Document);
+
+        var remoteWithRoomNumbers = remoteDocuments
+            .Where(IsTrustedServerDocument)
             .Select(document => new { Document = document, RoomNumber = ReadString(document.Data, "roomNumber") })
             .Where(item => !string.IsNullOrWhiteSpace(item.RoomNumber))
+            .ToList();
+        var ambiguousRoomNumbers = remoteWithRoomNumbers
             .GroupBy(item => item.RoomNumber!, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(group => group.Key, group => group.First().Document, StringComparer.OrdinalIgnoreCase);
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var remoteByRoomNumber = remoteWithRoomNumbers
+            .Where(item => !ambiguousRoomNumbers.Contains(item.RoomNumber!))
+            .ToDictionary(item => item.RoomNumber!, item => item.Document, StringComparer.OrdinalIgnoreCase);
 
         var rooms = _db.RoomsTables.ToList();
         var types = _db.TypeRoomsTables.ToList().ToDictionary(type => type.Id);
@@ -84,6 +101,13 @@ public sealed class AppwriteRoomSyncService
             remoteByServerId.TryGetValue(room.Id, out var remote);
             if (remote is null)
             {
+                if (ambiguousRoomNumbers.Contains(roomNumber))
+                {
+                    result.Conflicts++;
+                    _logger.LogWarning("Appwrite room sync skipped Orax room {RoomId} ({RoomNumber}) because multiple remote documents share the room number.", room.Id, roomNumber);
+                    continue;
+                }
+
                 remoteByRoomNumber.TryGetValue(roomNumber, out remote);
             }
 
@@ -91,9 +115,8 @@ public sealed class AppwriteRoomSyncService
             var now = DateTimeOffset.UtcNow;
             var nowSeconds = now.ToUnixTimeSeconds();
             var typeName = types.TryGetValue(room.IdType, out var type) ? type.NameT : string.Empty;
-            var status = statuses.TryGetValue(room.Id, out var roomStatus) && !string.IsNullOrWhiteSpace(roomStatus)
-                ? roomStatus
-                : "شاغرة";
+            var oraxStatus = statuses.TryGetValue(room.Id, out var roomStatus) ? roomStatus : null;
+            var status = OraxRoomStatusMapper.ToFlutterStatus(oraxStatus);
             var payload = new Dictionary<string, object?>
             {
                 ["localUuid"] = ReadString(remote?.Data, "localUuid") ?? Guid.NewGuid().ToString(),
@@ -102,8 +125,8 @@ public sealed class AppwriteRoomSyncService
                 ["type"] = typeName,
                 ["price"] = prices.TryGetValue(room.Id, out var price) ? price : 0d,
                 ["status"] = status,
-                ["cleaningStatus"] = ReadString(remote?.Data, "cleaningStatus") ?? "clean",
-                ["requiresMaintenance"] = ReadBool(remote?.Data, "requiresMaintenance"),
+                ["cleaningStatus"] = OraxRoomStatusMapper.ResolveCleaningStatus(oraxStatus, ReadString(remote?.Data, "cleaningStatus")),
+                ["requiresMaintenance"] = OraxRoomStatusMapper.RequiresMaintenance(oraxStatus, ReadBool(remote?.Data, "requiresMaintenance")),
                 ["origin"] = "server",
                 ["sync_origin"] = "orax",
                 ["deviceId"] = "orax-server",
@@ -203,6 +226,16 @@ public sealed class AppwriteRoomSyncService
 
     private static string TrimError(string body) => body.Length <= 500 ? body : body[..500];
 
+    private static bool IsTrustedServerDocument(AppwriteDocument document)
+    {
+        var origin = ReadString(document.Data, "origin");
+        var syncOrigin = ReadString(document.Data, "sync_origin");
+        return string.Equals(origin, "server", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(origin, "orax", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(syncOrigin, "server", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(syncOrigin, "orax", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool TryReadInt(IReadOnlyDictionary<string, JsonElement> data, string key, out int value)
     {
         if (data.TryGetValue(key, out var element) && element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out value)) return true;
@@ -262,6 +295,7 @@ public sealed class AppwriteRoomSyncResult
     public int Updated { get; set; }
     public int Skipped { get; set; }
     public int Failed { get; set; }
+    public int Conflicts { get; set; }
     public bool IsDisabled { get; private set; }
     public string? Message { get; private set; }
 
