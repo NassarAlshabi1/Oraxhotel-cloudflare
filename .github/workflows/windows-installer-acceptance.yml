@@ -46,6 +46,30 @@ jobs:
           if ($bytes.Length -lt 2 -or $bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) { throw 'Generated installer is not a Windows PE file.' }
           if ((Get-Item $env:installer_path).Length -lt 300MB) { throw 'Generated installer is unexpectedly small.' }
 
+      - name: Install and verify SQL Server Express prerequisite
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sqlMedia = Join-Path $env:RUNNER_TEMP 'SQLEXPR_x64_ENU.exe'
+          $sqlUrl = 'https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLEXPR_x64_ENU.exe'
+          $expectedSize = 261082544
+          $expectedHash = 'BEA033E778048748EB1C87BF57597F7F5449B6A15BAC55DDC08263C57F7A1CA8'
+          Invoke-WebRequest -Uri $sqlUrl -OutFile $sqlMedia -UseBasicParsing
+          if ((Get-Item $sqlMedia).Length -ne $expectedSize) { throw 'SQL Server media size mismatch.' }
+          $actualHash = (Get-FileHash $sqlMedia -Algorithm SHA256).Hash.ToUpperInvariant()
+          if ($actualHash -ne $expectedHash) { throw "SQL Server media SHA-256 mismatch: $actualHash" }
+          $account = "$env:USERDOMAIN\$env:USERNAME"
+          $args = @('/Q','/ACTION=Install','/FEATURES=SQL','/INSTANCENAME=SQLEXPRESS',"/SQLSYSADMINACCOUNTS=$account",'/SQLSVCSTARTUPTYPE=Automatic','/TCPENABLED=1','/IACCEPTSQLSERVERLICENSETERMS')
+          $sqlProcess = Start-Process -FilePath $sqlMedia -ArgumentList $args -Wait -PassThru -WorkingDirectory $env:RUNNER_TEMP
+          if ($sqlProcess.ExitCode -ne 0 -and $sqlProcess.ExitCode -ne 3010) { throw "SQL Server Express prerequisite failed: exit=$($sqlProcess.ExitCode)" }
+          $deadline = (Get-Date).AddMinutes(5)
+          do {
+            Start-Sleep -Seconds 5
+            $service = Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction SilentlyContinue
+          } while (($null -eq $service -or $service.Status -ne 'Running') -and (Get-Date) -lt $deadline)
+          if ($null -eq $service -or $service.Status -ne 'Running') { throw 'SQLEXPRESS did not become Running after prerequisite installation.' }
+          "sql_prerequisite=running" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
       - name: Run Orax Hotel installer from tested source
         shell: pwsh
         run: |
