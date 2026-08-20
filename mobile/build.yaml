@@ -1,0 +1,12 @@
+# Marina Hotel Mobile - Build Runner Configuration
+#
+# Keep this file limited to options supported by the installed builders.
+# Generated files use each builder's standard output locations.
+
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          explicit_to_json: true
+          field_rename: snake
