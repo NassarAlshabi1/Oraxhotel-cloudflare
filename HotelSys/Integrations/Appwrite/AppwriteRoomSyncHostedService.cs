@@ -54,12 +54,19 @@ public sealed class AppwriteRoomSyncHostedService : BackgroundService
                 using var scope = _scopeFactory.CreateScope();
                 var syncService = scope.ServiceProvider.GetRequiredService<AppwriteRoomSyncService>();
                 var result = await syncService.SyncRoomsAsync(stoppingToken);
-                _logger.LogInformation(
-                    "Appwrite room sync completed: created={Created}, updated={Updated}, skipped={Skipped}, failed={Failed}",
-                    result.Created,
-                    result.Updated,
-                    result.Skipped,
-                    result.Failed);
+                if (result.IsBusy)
+                {
+                    _logger.LogWarning("Appwrite room sync skipped because another room sync is already running.");
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Appwrite room sync completed: created={Created}, updated={Updated}, skipped={Skipped}, failed={Failed}",
+                        result.Created,
+                        result.Updated,
+                        result.Skipped,
+                        result.Failed);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

@@ -22,20 +22,40 @@ public sealed class AppwriteGuestInfoSyncService
     private readonly HotelAlkheerDB _db;
     private readonly AppwriteSyncOptions _options;
     private readonly ILogger<AppwriteGuestInfoSyncService> _logger;
+    private readonly AppwriteSyncCoordinator _coordinator;
 
     public AppwriteGuestInfoSyncService(
         AppwriteRestClient client,
         HotelAlkheerDB db,
         IOptions<AppwriteSyncOptions> options,
-        ILogger<AppwriteGuestInfoSyncService> logger)
+        ILogger<AppwriteGuestInfoSyncService> logger,
+        AppwriteSyncCoordinator coordinator)
     {
         _client = client;
         _db = db;
         _options = options.Value;
         _logger = logger;
+        _coordinator = coordinator;
     }
 
     public async Task<AppwriteSyncResult> SyncGuestsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_coordinator.TryEnter("guest_infos", out var lease))
+        {
+            return AppwriteSyncResult.Busy("guest_infos", "A guest_infos synchronization is already running.");
+        }
+
+        try
+        {
+            return await SyncGuestsCoreAsync(cancellationToken);
+        }
+        finally
+        {
+            lease.Dispose();
+        }
+    }
+
+    private async Task<AppwriteSyncResult> SyncGuestsCoreAsync(CancellationToken cancellationToken)
     {
         if (!_options.IsConfigured)
         {

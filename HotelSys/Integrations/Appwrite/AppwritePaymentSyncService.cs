@@ -22,20 +22,40 @@ public sealed class AppwritePaymentSyncService
     private readonly HotelAlkheerDB _db;
     private readonly AppwriteSyncOptions _options;
     private readonly ILogger<AppwritePaymentSyncService> _logger;
+    private readonly AppwriteSyncCoordinator _coordinator;
 
     public AppwritePaymentSyncService(
         AppwriteRestClient client,
         HotelAlkheerDB db,
         IOptions<AppwriteSyncOptions> options,
-        ILogger<AppwritePaymentSyncService> logger)
+        ILogger<AppwritePaymentSyncService> logger,
+        AppwriteSyncCoordinator coordinator)
     {
         _client = client;
         _db = db;
         _options = options.Value;
         _logger = logger;
+        _coordinator = coordinator;
     }
 
     public async Task<AppwriteSyncResult> SyncPaymentsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_coordinator.TryEnter("payments", out var lease))
+        {
+            return AppwriteSyncResult.Busy("payments", "A payments synchronization is already running.");
+        }
+
+        try
+        {
+            return await SyncPaymentsCoreAsync(cancellationToken);
+        }
+        finally
+        {
+            lease.Dispose();
+        }
+    }
+
+    private async Task<AppwriteSyncResult> SyncPaymentsCoreAsync(CancellationToken cancellationToken)
     {
         if (!_options.IsConfigured)
         {

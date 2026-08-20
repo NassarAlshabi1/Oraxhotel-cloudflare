@@ -66,7 +66,9 @@ public sealed class AppwriteSyncController : ControllerBase
         var result = await _roomSyncService.SyncRoomsAsync(cancellationToken);
         return result.IsDisabled
             ? StatusCode(StatusCodes.Status503ServiceUnavailable, result)
-            : Ok(result);
+            : result.IsBusy
+                ? Conflict(result)
+                : Ok(result);
     }
 
     [HttpPost("sync/bookings")]
@@ -75,7 +77,9 @@ public sealed class AppwriteSyncController : ControllerBase
         var result = await _bookingSyncService.SyncBookingsAsync(cancellationToken);
         return result.IsDisabled
             ? StatusCode(StatusCodes.Status503ServiceUnavailable, result)
-            : Ok(result);
+            : result.IsBusy
+                ? Conflict(result)
+                : Ok(result);
     }
 
     [HttpPost("sync/guests")]
@@ -84,7 +88,9 @@ public sealed class AppwriteSyncController : ControllerBase
         var result = await _guestSyncService.SyncGuestsAsync(cancellationToken);
         return result.IsDisabled
             ? StatusCode(StatusCodes.Status503ServiceUnavailable, result)
-            : Ok(result);
+            : result.IsBusy
+                ? Conflict(result)
+                : Ok(result);
     }
 
     [HttpPost("sync/payments")]
@@ -93,6 +99,8 @@ public sealed class AppwriteSyncController : ControllerBase
         var result = await _paymentSyncService.SyncPaymentsAsync(cancellationToken);
         return result.IsDisabled
             ? StatusCode(StatusCodes.Status503ServiceUnavailable, result)
-            : Ok(result);
+            : result.IsBusy
+                ? Conflict(result)
+                : Ok(result);
     }
 }

@@ -146,12 +146,20 @@ public sealed class AppwriteSyncResult
     public int Failed { get; set; }
     public int Conflicts { get; set; }
     public bool IsDisabled { get; private set; }
+    public bool IsBusy { get; private set; }
     public string? Message { get; private set; }
 
     public static AppwriteSyncResult Disabled(string entity, string message) => new()
     {
         Entity = entity,
         IsDisabled = true,
+        Message = message
+    };
+
+    public static AppwriteSyncResult Busy(string entity, string message) => new()
+    {
+        Entity = entity,
+        IsBusy = true,
         Message = message
     };
 }

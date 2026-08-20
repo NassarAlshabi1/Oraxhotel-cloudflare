@@ -86,16 +86,24 @@ public sealed class AppwriteCoreSyncHostedService : BackgroundService
 
     private Task LogResultAsync(string entity, AppwriteSyncResult result)
     {
-        _logger.LogInformation(
-            "Appwrite {Entity} sync completed: source={SourceRecords}, remote={RemoteBeforeSync}, created={Created}, updated={Updated}, skipped={Skipped}, conflicts={Conflicts}, failed={Failed}",
-            entity,
-            result.SourceRecords,
-            result.RemoteBeforeSync,
-            result.Created,
-            result.Updated,
-            result.Skipped,
-            result.Conflicts,
-            result.Failed);
+        if (result.IsBusy)
+        {
+            _logger.LogWarning("Appwrite {Entity} sync skipped because another synchronization is already running.", entity);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Appwrite {Entity} sync completed: source={SourceRecords}, remote={RemoteBeforeSync}, created={Created}, updated={Updated}, skipped={Skipped}, conflicts={Conflicts}, failed={Failed}",
+                entity,
+                result.SourceRecords,
+                result.RemoteBeforeSync,
+                result.Created,
+                result.Updated,
+                result.Skipped,
+                result.Conflicts,
+                result.Failed);
+        }
+
         return Task.CompletedTask;
     }
 }

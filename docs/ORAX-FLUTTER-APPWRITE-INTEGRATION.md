@@ -87,7 +87,7 @@ queries[]={"method":"offset","values":[0]}
 
 ## الخدمات ونقاط الإدارة
 
-تُسجل الخدمات الأربعة كـ scoped services، ويعمل لكل دورة HostedService ضمن scope مستقل حتى لا يُستخدم اتصال قاعدة البيانات بعد انتهاء عمره. خدمة الغرف الحالية مستقلة، بينما تنفذ `AppwriteCoreSyncHostedService` الحجوزات ثم النزلاء ثم المدفوعات حسب مفاتيح التشغيل التلقائي.
+تُسجل الخدمات الأربعة كـ scoped services، ويعمل لكل دورة HostedService ضمن scope مستقل حتى لا يُستخدم اتصال قاعدة البيانات بعد انتهاء عمره. يوجد `AppwriteSyncCoordinator` كـ singleton بقفل مستقل لكل كيان، لذلك لا يمكن أن تتداخل مزامنة يدوية مع الدورة الدورية لنفس collection، بينما تبقى كيانات مختلفة مستقلة. تنفذ `AppwriteCoreSyncHostedService` الحجوزات ثم النزلاء ثم المدفوعات حسب مفاتيح التشغيل التلقائي، وتُسجل الدورة المتخطاة بسبب قفل قائم كتحذير واضح بدلاً من نجاح صفري.
 
 | المسار | الوظيفة |
 |---|---|
@@ -97,7 +97,7 @@ queries[]={"method":"offset","values":[0]}
 | `POST /api/appwrite/sync/guests` | مزامنة ملفات النزلاء فوراً |
 | `POST /api/appwrite/sync/payments` | مزامنة المدفوعات فوراً |
 
-جميع نقاط المزامنة خلف مصادقة Orax الحالية عبر `[Authorize]`. Flutter لا يحتاج إلى استدعائها؛ يقرأ Appwrite بواسطة `AppwriteSyncManager` وadapters الموجودة في مجلد `mobile`.
+جميع نقاط المزامنة خلف مصادقة Orax الحالية عبر `[Authorize]`. Flutter لا يحتاج إلى استدعائها؛ يقرأ Appwrite بواسطة `AppwriteSyncManager` وadapters الموجودة في مجلد `mobile`. عند وجود مزامنة لنفس الكيان، تعيد نقطة الإدارة HTTP 409 بدلاً من تشغيل دورة ثانية.
 
 ## إعداد Orax
 
@@ -114,6 +114,8 @@ queries[]={"method":"offset","values":[0]}
 | AppwriteRestClient runtime probe | جمع 200 حجزاً فعلياً عبر صفحتين 100+100، مع التحقق من `origin` و`roomNumber` و`serverBookingId` top-level |
 | تدقيق legacy identities | `bookings`: 199 server و1 local مع 14 مفاتيح room/date مكررة؛ `guest_infos`: 87 server و32 local مع 5 هويات نزيل مكررة؛ `payments`: 896 server و229 local دون تكرار room/date/amount |
 | probe payloads الإنتاجية | قبول إنشاء وحذف payloads واقعية للحجز والدفعة والنزيل مع الحقول الاختيارية `null`: HTTP 201 ثم HTTP 204 |
+| probe `AppwriteSyncCoordinator` | منع دخولين متزامنين لنفس الكيان، السماح لكيان مختلف، وإعادة الدخول بعد تحرير القفل |
+| build بعد coordinator | ناجح: `0 Error(s)` و`289 Warning(s)` القائمة من المشروع خارج التكامل |
 | probe إنشاء وحذف `rooms` | إنشاء HTTP 201، حذف HTTP 204 |
 | probe إنشاء وحذف `bookings` | إنشاء HTTP 201، حذف HTTP 204 |
 | probe إنشاء وحذف `payments` | إنشاء HTTP 201، حذف HTTP 204 |

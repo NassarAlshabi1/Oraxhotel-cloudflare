@@ -22,20 +22,40 @@ public sealed class AppwriteRoomSyncService
     private readonly HotelAlkheerDB _db;
     private readonly AppwriteSyncOptions _options;
     private readonly ILogger<AppwriteRoomSyncService> _logger;
+    private readonly AppwriteSyncCoordinator _coordinator;
 
     public AppwriteRoomSyncService(
         AppwriteRestClient client,
         HotelAlkheerDB db,
         IOptions<AppwriteSyncOptions> options,
-        ILogger<AppwriteRoomSyncService> logger)
+        ILogger<AppwriteRoomSyncService> logger,
+        AppwriteSyncCoordinator coordinator)
     {
         _client = client;
         _db = db;
         _options = options.Value;
         _logger = logger;
+        _coordinator = coordinator;
     }
 
     public async Task<AppwriteRoomSyncResult> SyncRoomsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_coordinator.TryEnter("rooms", out var lease))
+        {
+            return AppwriteRoomSyncResult.Busy("A rooms synchronization is already running.");
+        }
+
+        try
+        {
+            return await SyncRoomsCoreAsync(cancellationToken);
+        }
+        finally
+        {
+            lease.Dispose();
+        }
+    }
+
+    private async Task<AppwriteRoomSyncResult> SyncRoomsCoreAsync(CancellationToken cancellationToken)
     {
         if (!_options.IsConfigured)
         {
@@ -214,11 +234,18 @@ public sealed class AppwriteRoomSyncResult
     public int Failed { get; set; }
     public int Conflicts { get; set; }
     public bool IsDisabled { get; private set; }
+    public bool IsBusy { get; private set; }
     public string? Message { get; private set; }
 
     public static AppwriteRoomSyncResult Disabled(string message) => new()
     {
         IsDisabled = true,
+        Message = message
+    };
+
+    public static AppwriteRoomSyncResult Busy(string message) => new()
+    {
+        IsBusy = true,
         Message = message
     };
 }
