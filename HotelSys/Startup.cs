@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using HotelSys.Services;
 using HotelSys.Data;
+using HotelSys.Integrations.Appwrite;
 using LinqToDB.AspNet;
 using DataModels;
 using LinqToDB.Configuration;
@@ -54,6 +55,10 @@ namespace HotelSys {
 
             //services.AddDbContext<ReportDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("ReportsDataConnectionString")));
 
+
+            services.Configure<AppwriteSyncOptions>(Configuration.GetSection("Appwrite"));
+            services.AddHttpClient<AppwriteRoomSyncService>();
+            services.AddHostedService<AppwriteRoomSyncHostedService>();
 
             services.AddControllersWithViews();
 
@@ -126,6 +131,8 @@ namespace HotelSys {
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
+
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Wellcome1}/{action=Index}/{id?}");
