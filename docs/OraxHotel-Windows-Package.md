@@ -36,21 +36,21 @@
 sha256sum OraxHotel-Setup.exe
 ```
 
-إصدار التسليم الجديد المبني بعد إصلاحات المثبت:
+إصدار التسليم v1.3.0 المبني من commit اجتاز Windows acceptance بعد إصلاحات المثبت:
 
 | الملف | الحجم | SHA-256 |
 |---|---:|---|
-| `OraxHotel-Setup.exe` | 425941254 bytes | `86903f62a563aab66caa636df8e771ef64c0d9f5a00c58927799f176da7dac67` |
+| `OraxHotel-Setup.exe` | 422333380 bytes | `5750f1b18615bec51352549596f2adbecba85122403bdf9afbabe45b0c1d2dca` |
 
 يجب مقارنة الناتج مع بصمة أصل GitHub Release المنشورة من مالك المستودع. لا تعتمد على بصمة قديمة إذا تغير ملف EXE أو إصدار الحزمة.
 
 ## المتطلبات
 
-يتطلب التشغيل Windows 10 أو Windows 11 x64، وصلاحية Administrator أثناء التثبيت، ومساحة كافية لاستخراج التطبيق ووسيط SQL Server Express. لا يلزم تثبيت SQL Server مسبقاً، لكن لا يمكن اعتماد نجاح التثبيت التنفيذي من بيئة Linux؛ يجب إجراء اختبار قبول على Windows.
+يتطلب التشغيل Windows 10 أو Windows 11 x64، وصلاحية Administrator أثناء التثبيت، ومساحة كافية لاستخراج التطبيق ووسيط SQL Server Express. لا يلزم تثبيت SQL Server مسبقاً. تم إثبات التثبيت التنفيذي على runner فعلي بنظام `windows-2022` في GitHub Actions، مع بقاء اختبار UAC وتسجيل الدخول اليدوي اختيارياً على جهاز مستخدم.
 
 ## الدعم والمصدر
 
-رابط الإصدار الشامل الحالي: <https://github.com/Nassaralshabi/oraxhotel2024/releases/tag/windows-installer-v1.2.0>
+رابط الإصدار الشامل الحالي: <https://github.com/Nassaralshabi/oraxhotel2024/releases/tag/windows-installer-v1.3.0>
 
 المستودع الخاص: <https://github.com/Nassaralshabi/oraxhotel2024>
 

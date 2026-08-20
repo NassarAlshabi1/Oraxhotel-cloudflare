@@ -50,7 +50,7 @@
 | `dotnet build HotelSys.csproj --runtime win-x64` | ناجح، `0 Error(s)` و`289 Warning(s)` | التحذيرات قديمة وخارج تكامل Appwrite؛ يلزم مراجعة مستقلة لاحقاً |
 | نشر المثبت self-contained | ناجح | تم التحقق من إنتاج `OraxHotel-Setup.exe` |
 | نوع EXE | `PE32+ executable x86-64` | فحص ساكن على Linux، وليس تشغيل Windows |
-| بصمة EXE | `86903f62a563aab66caa636df8e771ef64c0d9f5a00c58927799f176da7dac67` | الحجم `425941254` bytes |
+| بصمة EXE v1.3.0 | `5750f1b18615bec51352549596f2adbecba85122403bdf9afbabe45b0c1d2dca` | الحجم `422333380` bytes؛ artifact من run `32414521098` |
 | payload archive | ناجح | `payload` هو الجذر الصحيح، وعدد الملفات المستخرجة 1234 |
 | appsettings preservation probe | ناجح | بقي Appwrite والأقسام المخصصة، وتحدثت ConnectionStrings فقط |
 | Appwrite collections | نجح سابقاً عبر REST | `rooms=20`, `bookings=200`, `payments=1125`, `guest_infos=119` |
@@ -108,4 +108,4 @@
 [1]: https://appwrite.io/docs/apis/rest "Appwrite REST API"
 [2]: https://appwrite.io/docs/products/databases/pagination "Appwrite Databases Pagination"
 [3]: https://appwrite.io/docs/products/databases/legacy/documents "Appwrite Legacy Documents"
-[4]: https://github.com/Nassaralshabi/oraxhotel2024/releases/tag/windows-installer-v1.2.0 "Orax Hotel Windows Installer v1.2.0"
+[4]: https://github.com/Nassaralshabi/oraxhotel2024/releases/tag/windows-installer-v1.3.0 "Orax Hotel Windows Installer v1.3.0"
