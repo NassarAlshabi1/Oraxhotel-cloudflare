@@ -1,6 +1,9 @@
 name: Windows Installer Acceptance
 
 on:
+  push:
+    branches:
+      - feature/orax-flutter-appwrite-integration
   workflow_dispatch:
     inputs:
       release_tag:
@@ -18,7 +21,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 60
     env:
-      RELEASE_TAG: ${{ inputs.release_tag }}
+      RELEASE_TAG: ${{ inputs.release_tag || 'windows-installer-v1.2.0' }}
       APP_PORT: 5080
 
     steps:
