@@ -1,0 +1,129 @@
+name: Windows Installer Acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub Release tag containing the installer to test
+        required: true
+        default: windows-installer-v1.2.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  windows-installer-acceptance:
+    name: Install SQL Server and Orax Hotel on Windows
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      APP_PORT: 5080
+
+    steps:
+      - name: Download release installer
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $downloadDir = Join-Path $env:RUNNER_TEMP 'orax-release'
+          New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
+          gh release download $env:RELEASE_TAG `
+            --repo $env:GITHUB_REPOSITORY `
+            --pattern 'OraxHotel-Setup.exe' `
+            --pattern 'SHA256SUMS.txt' `
+            --dir $downloadDir
+          "download_dir=$downloadDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Verify installer checksum and PE format
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Join-Path $env:download_dir 'OraxHotel-Setup.exe'
+          $sums = Join-Path $env:download_dir 'SHA256SUMS.txt'
+          if (-not (Test-Path $installer)) { throw "Installer was not downloaded: $installer" }
+          if (-not (Test-Path $sums)) { throw "Checksum file was not downloaded: $sums" }
+          $expected = ((Get-Content $sums | Select-String 'OraxHotel-Setup.exe').ToString() -split '\s+')[0].ToLowerInvariant()
+          $actual = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "SHA-256 mismatch. expected=$expected actual=$actual" }
+          $bytes = [System.IO.File]::ReadAllBytes($installer)
+          if ($bytes.Length -lt 2 -or $bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) { throw 'Installer is not a Windows PE file.' }
+          "installer_sha256=$actual" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "installer_bytes=$($bytes.Length)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Run Orax Hotel installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Join-Path $env:download_dir 'OraxHotel-Setup.exe'
+          $log = Join-Path $env:RUNNER_TEMP 'orax-installer.log'
+          $process = Start-Process -FilePath $installer -Wait -PassThru -WorkingDirectory $env:RUNNER_TEMP
+          "installer_exit_code=$($process.ExitCode)" | Out-File -FilePath $log -Encoding utf8
+          if ($process.ExitCode -ne 0) { throw "Orax installer failed with exit code $($process.ExitCode)." }
+          if (-not (Test-Path (Join-Path $env:LOCALAPPDATA 'OraxHotel\HotelSys.exe'))) {
+            throw 'HotelSys.exe was not installed in LOCALAPPDATA.'
+          }
+
+      - name: Verify SQL Server and Hotel database
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $service = Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction Stop
+          if ($service.Status -ne 'Running') { throw "SQL Server service is not running: $($service.Status)" }
+          $connection = New-Object System.Data.SqlClient.SqlConnection
+          $connection.ConnectionString = 'Server=.\SQLEXPRESS;Database=master;Integrated Security=True;TrustServerCertificate=True;Connection Timeout=30'
+          $connection.Open()
+          $command = $connection.CreateCommand()
+          $command.CommandText = "SELECT DB_ID('Hotel_alkheer')"
+          $databaseId = $command.ExecuteScalar()
+          $connection.Close()
+          if ($null -eq $databaseId -or $databaseId -eq [DBNull]::Value) { throw 'Hotel_alkheer database was not found.' }
+          "sql_service=$($service.Status)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "hotel_database_id=$databaseId" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Start Orax and verify health endpoint
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $appDir = Join-Path $env:LOCALAPPDATA 'OraxHotel'
+          $env:ASPNETCORE_URLS = "http://127.0.0.1:$env:APP_PORT"
+          $app = Start-Process -FilePath (Join-Path $appDir 'HotelSys.exe') -WorkingDirectory $appDir -PassThru
+          try {
+            $healthy = $false
+            for ($i = 0; $i -lt 30; $i++) {
+              Start-Sleep -Seconds 2
+              try {
+                $response = Invoke-WebRequest -Uri "http://127.0.0.1:$env:APP_PORT/api/appwrite/health" -UseBasicParsing -TimeoutSec 5
+                if ($response.StatusCode -eq 200 -or $response.StatusCode -eq 401) { $healthy = $true; break }
+              } catch { }
+            }
+            if (-not $healthy) { throw 'Orax did not respond on the local HTTP endpoint within 60 seconds.' }
+            "orax_health_endpoint_reached=true" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+          finally {
+            if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+          }
+
+      - name: Collect acceptance logs
+        if: always()
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP 'orax-acceptance-artifacts'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'orax-installer.log') $out -ErrorAction SilentlyContinue
+          if (Test-Path (Join-Path $env:LOCALAPPDATA 'OraxHotel')) {
+            Get-ChildItem (Join-Path $env:LOCALAPPDATA 'OraxHotel') -Filter '*.log' -Recurse -ErrorAction SilentlyContinue |
+              Copy-Item -Destination $out -Force -ErrorAction SilentlyContinue
+          }
+          "acceptance_runner=$env:RUNNER_OS" | Out-File (Join-Path $out 'environment.txt') -Encoding utf8
+          "release_tag=$env:RELEASE_TAG" | Add-Content (Join-Path $out 'environment.txt')
+
+      - name: Upload acceptance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orax-windows-acceptance-${{ github.run_id }}
+          path: ${{ runner.temp }}\orax-acceptance-artifacts
+          if-no-files-found: warn
