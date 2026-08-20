@@ -62,9 +62,13 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $installer = Join-Path $env:download_dir 'OraxHotel-Setup.exe'
           $log = Join-Path $env:RUNNER_TEMP 'orax-installer.log'
-          $process = Start-Process -FilePath $installer -Wait -PassThru -WorkingDirectory $env:RUNNER_TEMP
+          $stdout = Join-Path $env:RUNNER_TEMP 'orax-installer.stdout.log'
+          $stderr = Join-Path $env:RUNNER_TEMP 'orax-installer.stderr.log'
+          $process = Start-Process -FilePath $installer -Wait -PassThru -WorkingDirectory $env:RUNNER_TEMP -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           "installer_exit_code=$($process.ExitCode)" | Out-File -FilePath $log -Encoding utf8
-          if ($process.ExitCode -ne 0) { throw "Orax installer failed with exit code $($process.ExitCode)." }
+          if (Test-Path $stdout) { Get-Content $stdout; Get-Content $stdout | Add-Content $log }
+          if (Test-Path $stderr) { Get-Content $stderr; Get-Content $stderr | Add-Content $log }
+          if ($process.ExitCode -ne 0) { throw "Orax installer failed with exit code $($process.ExitCode). See captured stdout/stderr." }
           if (-not (Test-Path (Join-Path $env:LOCALAPPDATA 'OraxHotel\HotelSys.exe'))) {
             throw 'HotelSys.exe was not installed in LOCALAPPDATA.'
           }
@@ -116,6 +120,8 @@ jobs:
           $out = Join-Path $env:RUNNER_TEMP 'orax-acceptance-artifacts'
           New-Item -ItemType Directory -Force -Path $out | Out-Null
           Copy-Item (Join-Path $env:RUNNER_TEMP 'orax-installer.log') $out -ErrorAction SilentlyContinue
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'orax-installer.stdout.log') $out -ErrorAction SilentlyContinue
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'orax-installer.stderr.log') $out -ErrorAction SilentlyContinue
           if (Test-Path (Join-Path $env:LOCALAPPDATA 'OraxHotel')) {
             Get-ChildItem (Join-Path $env:LOCALAPPDATA 'OraxHotel') -Filter '*.log' -Recurse -ErrorAction SilentlyContinue |
               Copy-Item -Destination $out -Force -ErrorAction SilentlyContinue
