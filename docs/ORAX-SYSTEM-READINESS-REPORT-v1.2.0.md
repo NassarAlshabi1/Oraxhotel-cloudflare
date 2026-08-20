@@ -4,7 +4,7 @@
 **التاريخ:** 20 أغسطس 2026
 **المستودع:** `Nassaralshabi/oraxhotel2024`
 **الفرع الحالي:** `feature/orax-flutter-appwrite-integration`
-**commit التكامل المراجع:** `fceb112841d1a412efbe7cc0b86a67f460cd0c8a`
+**commit التكامل المراجع:** `be95c2d4f2f48db16f2a0b8de1cfb5c6f2e8c0bd` (الوثائق الحالية)؛ binary مبني من `f3837eddd14bbdb357a4b71346df700d76a4a7f7`
 
 ## الخلاصة التنفيذية
 
@@ -100,7 +100,7 @@
 | Run ID | [`32413645023`](https://github.com/Nassaralshabi/oraxhotel2024/actions/runs/32413645023) |
 | النتيجة | `success` |
 | Runner | `windows-2022` |
-| Source commit | `fceb112841d1a412efbe7cc0b86a67f460cd0c8a` |
+| Source commit | `f3837eddd14bbdb357a4b71346df700d76a4a7f7` |
 | الخطوات الناجحة | Build، PE check، SQL prerequisite، installer، database verification، health endpoint، diagnostics upload |
 
 ## المراجع
