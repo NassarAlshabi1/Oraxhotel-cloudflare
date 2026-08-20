@@ -27,3 +27,9 @@ PC-Free مناسب نظرياً لاختبار EXE من متصفح إذا نجح
 [3]: https://docs.github.com/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces "GitHub Codespaces billing"
 [4]: https://github.com/features/codespaces "GitHub Codespaces"
 [5]: https://github.com/dockur/windows "dockur/windows requirements"
+
+## نتيجة اختبار GitHub Actions الفعلية
+
+تم تشغيل Windows runner فعلياً. نجح تنزيل release والتحقق من SHA-256 وPE، لكن asset `windows-installer-v1.2.0` فشل في خطوة التثبيت لأن النسخة المرفوعة كانت تفاعلية وتنتظر إجابة سؤال تثبيت SQL Server؛ لذلك لا يكفي تشغيلها بلا إدخال. تم تحديث workflow لتمرير الإدخال تلقائياً، ثم استُبدل المسار ليبني من المصدر الحالي.
+
+أول محاولة build من المصدر كشفت سبباً مستقلاً: `NuGet.config` كان يفرض مصدراً محلياً هو `C:\Program Files\DevExpress 22.1\DevExtreme\System\DevExtreme\Bin\AspNetCore` غير موجود على runner. تم التحقق من توفر `DevExpress.AspNetCore.Reporting 25.1.3` على NuGet الرسمي، ثم استبدال المصدر المحلي بمصدر `nuget.org` في `NuGet.config`. workflow الحالي يبني من المصدر بعد هذا الإصلاح ثم يثبت SQL Server ويفحص قاعدة `Hotel_alkheer` وendpoint الصحة.

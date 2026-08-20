@@ -5,73 +5,61 @@ on:
     branches:
       - feature/orax-flutter-appwrite-integration
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: GitHub Release tag containing the installer to test
-        required: true
-        default: windows-installer-v1.2.0
-        type: string
 
 permissions:
   contents: read
 
 jobs:
   windows-installer-acceptance:
-    name: Install SQL Server and Orax Hotel on Windows
+    name: Build, install SQL Server, and run Orax Hotel on Windows
     runs-on: windows-2022
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
-      RELEASE_TAG: ${{ inputs.release_tag || 'windows-installer-v1.2.0' }}
       APP_PORT: 5080
 
     steps:
-      - name: Download release installer
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $downloadDir = Join-Path $env:RUNNER_TEMP 'orax-release'
-          New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
-          gh release download $env:RELEASE_TAG `
-            --repo $env:GITHUB_REPOSITORY `
-            --pattern 'OraxHotel-Setup.exe' `
-            --pattern 'SHA256SUMS.txt' `
-            --dir $downloadDir
-          "download_dir=$downloadDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Checkout tested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
 
-      - name: Verify installer checksum and PE format
+      - name: Build installer from current source
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $installer = Join-Path $env:download_dir 'OraxHotel-Setup.exe'
-          $sums = Join-Path $env:download_dir 'SHA256SUMS.txt'
-          if (-not (Test-Path $installer)) { throw "Installer was not downloaded: $installer" }
-          if (-not (Test-Path $sums)) { throw "Checksum file was not downloaded: $sums" }
-          $expected = ((Get-Content $sums | Select-String 'OraxHotel-Setup.exe').ToString() -split '\s+')[0].ToLowerInvariant()
-          $actual = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($actual -ne $expected) { throw "SHA-256 mismatch. expected=$expected actual=$actual" }
-          $bytes = [System.IO.File]::ReadAllBytes($installer)
-          if ($bytes.Length -lt 2 -or $bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) { throw 'Installer is not a Windows PE file.' }
-          "installer_sha256=$actual" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-          "installer_bytes=$($bytes.Length)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          pwsh -NoProfile -ExecutionPolicy Bypass -File .\installer\Build-Installer.ps1 -Configuration Release -Runtime win-x64 -OutputDir build-output
+          $installer = Join-Path $env:GITHUB_WORKSPACE 'installer\build-output\installer\OraxHotel-Setup.exe'
+          if (-not (Test-Path $installer)) { throw "Source build did not produce $installer" }
+          "installer_path=$installer" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          "installer_sha256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "source_commit=$env:GITHUB_SHA" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "installer_sha256=$hash" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "installer_bytes=$((Get-Item $installer).Length)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
-      - name: Run Orax Hotel installer with default SQL install answer
+      - name: Verify generated installer PE format
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $installer = Join-Path $env:download_dir 'OraxHotel-Setup.exe'
+          $bytes = [System.IO.File]::ReadAllBytes($env:installer_path)
+          if ($bytes.Length -lt 2 -or $bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) { throw 'Generated installer is not a Windows PE file.' }
+          if ((Get-Item $env:installer_path).Length -lt 300MB) { throw 'Generated installer is unexpectedly small.' }
+
+      - name: Run Orax Hotel installer from tested source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
           $log = Join-Path $env:RUNNER_TEMP 'orax-installer.log'
           $stdout = Join-Path $env:RUNNER_TEMP 'orax-installer.stdout.log'
           $stderr = Join-Path $env:RUNNER_TEMP 'orax-installer.stderr.log'
-          $stdin = Join-Path $env:RUNNER_TEMP 'orax-installer.stdin.txt'
-          Set-Content -Path $stdin -Value "Y" -Encoding ascii
-          $process = Start-Process -FilePath $installer -Wait -PassThru -WorkingDirectory $env:RUNNER_TEMP -RedirectStandardInput $stdin -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          $process = Start-Process -FilePath $env:installer_path -Wait -PassThru -WorkingDirectory $env:RUNNER_TEMP -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           "installer_exit_code=$($process.ExitCode)" | Out-File -FilePath $log -Encoding utf8
           if (Test-Path $stdout) { Get-Content $stdout; Get-Content $stdout | Add-Content $log }
           if (Test-Path $stderr) { Get-Content $stderr; Get-Content $stderr | Add-Content $log }
           if ($process.ExitCode -ne 0) { throw "Orax installer failed with exit code $($process.ExitCode). See captured stdout/stderr." }
-          if (-not (Test-Path (Join-Path $env:LOCALAPPDATA 'OraxHotel\HotelSys.exe'))) { throw 'HotelSys.exe was not installed in LOCALAPPDATA.' }
+          $installedApp = Join-Path $env:LOCALAPPDATA 'OraxHotel\HotelSys.exe'
+          if (-not (Test-Path $installedApp)) { throw "HotelSys.exe was not installed at $installedApp" }
 
       - name: Verify SQL Server and Hotel database
         shell: pwsh
