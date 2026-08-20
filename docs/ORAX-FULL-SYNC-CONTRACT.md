@@ -11,11 +11,11 @@
 | الكيان | مصدر الهوية | Appwrite document ID | server field |
 |---|---|---|---|
 | الغرفة | `RoomsTable.Id` | `orax-room-{id}` أو المستند المطابق الحالي | `serverId` |
-| الحجز | `RecetionTable.Id` | `orax-booking-{id}` | `serverBookingId` |
-| معلومات النزيل | `CustomerTable.Id` عبر `MyCustomer` | `orax-guest-{id}` | `serverId` |
-| الدفعة/الفاتورة المدفوعة | `BillsTable.Id` | `orax-payment-{id}` | `serverPaymentId` |
+| الحجز | `RecetionTable.Id` | `orax-booking-{id}` أو المستند server legacy المطابق | `serverBookingId` |
+| معلومات النزيل | `CustomerTable.Id` عبر `MyCustomer` | `orax-guest-{id}` أو المستند server legacy المطابق | `serverId` |
+| الدفعة/الفاتورة المدفوعة | `BillsTable.Id` | `orax-payment-{id}` أو المستند server legacy المطابق | `serverPaymentId` |
 
-يُنشأ `localUuid` ثابت لكل مستند Orax بواسطة UUID حتمي مشتق من نوع الكيان ورقم السجل. لا يُستخدم `bookingLocalId` أو أي auto-increment محلي من جهاز Flutter كرابط بين الأجهزة.
+يُنشأ `localUuid` ثابت لكل مستند Orax بواسطة UUID حتمي مشتق من نوع الكيان ورقم السجل. لا يُستخدم `bookingLocalId` أو أي auto-increment محلي من جهاز Flutter كرابط بين الأجهزة. عند قراءة Appwrite، تُقرأ خصائص المستند top-level عبر `JsonExtensionData`؛ لا يُفترض وجود كائن `data` متداخل في استجابة REST.
 
 ## الحجوزات
 
@@ -23,15 +23,15 @@
 
 ## معلومات النزلاء
 
-يُحوّل سجل `CustomerTable` المرتبط بـ `MyCustomer` إلى collection `guest_infos`. هذا الكيان في Flutter مسطح ولا يحمل booking foreign key، ولذلك يُزامن كسجل هوية مستقل. الحقول الأساسية هي الاسم والجنسية ونوع ورقم الإثبات وتاريخ ومكان الإصدار ورقم الغرفة عند وجود حجز نشط.
+يُحوّل سجل `CustomerTable` المرتبط بـ `MyCustomer` إلى collection `guest_infos`. هذا الكيان في Flutter مسطح ولا يحمل booking foreign key، ولذلك يُزامن كسجل هوية مستقل. الحقول الأساسية هي الاسم والجنسية ونوع ورقم الإثبات وتاريخ ومكان الإصدار ورقم الغرفة عند وجود حجز نشط. عند غياب `serverId` في مستند server قديم، تكون المطابقة الآمنة على `guestName + idNumber + nationality` بشرط وجود رقم الإثبات؛ التكرار يؤدي إلى تعارض، ومستندات `origin=local` لا تُستبدل.
 
 ## المدفوعات
 
-لا يُحوّل كل `BillsTable` إلى دفعة تلقائياً. العقد الحالي يزامن **الفواتير المرتبطة بحجز والتي لها `PayAmount > 0`** إلى collection `payments`. `PayAmount` هو amount، و`Date` هو paymentDate، و`TypePay` هو paymentMethod، و`NumReference` هو referenceNumber، و`Note` هو notes، و`IdReception` هو serverBookingId. `RestAmount > 0` ينتج `isPendingBalance=true`. الفواتير التي لا تحتوي دفعة فعلية لا تُرسل إلى payments حتى لا تظهر إيرادات وهمية. يلزم مسار مستقل لاحقاً إذا أثبتت قاعدة البيانات أن سندات `BondTable` تمثل دفعات لا تنعكس في `BillsTable`.
+لا يُحوّل كل `BillsTable` إلى دفعة تلقائياً. العقد الحالي يزامن **الفواتير المرتبطة بحجز والتي لها `PayAmount > 0`** إلى collection `payments`. `PayAmount` هو amount، و`Date` هو paymentDate، و`TypePay` هو paymentMethod، و`NumReference` هو referenceNumber، و`Note` هو notes، و`IdReception` هو serverBookingId. `RestAmount > 0` ينتج `isPendingBalance=true`. الفواتير التي لا تحتوي دفعة فعلية لا تُرسل إلى payments حتى لا تظهر إيرادات وهمية. عند غياب `serverPaymentId` في مستند server قديم، تكون المطابقة على `roomNumber + paymentDate` حتى مستوى الثانية + `amount`، مع رفض التكرار. لا يدخل `paymentMethod` في الهوية لأنه قد يختلف نصياً بين Orax وFlutter. يلزم مسار مستقل لاحقاً إذا أثبتت قاعدة البيانات أن سندات `BondTable` تمثل دفعات لا تنعكس في `BillsTable`.
 
 ## pagination والتعارضات
 
-تستخدم خدمة Orax صيغة Appwrite JSON queries الرسمية، مثل `{"method":"limit","values":[100]}` و`{"method":"offset","values":[0]}`، وتتحقق من أن عدد المستندات المجمّع يساوي `total`. إذا وُجد تكرار في هوية موثقة، لا تختار الخدمة مستنداً عشوائياً بل تسجل تعارضاً وتتخطى السجل. وتبقى عمليات Orax أحادية الاتجاه في هذه المرحلة؛ فلا يجوز لـ Flutter الكتابة فوق سجلات Orax المحاسبية دون API أعمال.
+تستخدم خدمة Orax صيغة Appwrite JSON queries الرسمية، مثل `{"method":"limit","values":[100]}` و`{"method":"offset","values":[0]}`، وتتحقق من أن عدد المستندات المجمّع يساوي `total`. إذا وُجد تكرار في هوية موثقة أو fallback، لا تختار الخدمة مستنداً عشوائياً بل تسجل تعارضاً وتتخطى السجل. وتبقى عمليات Orax أحادية الاتجاه في هذه المرحلة؛ فلا يجوز لـ Flutter الكتابة فوق سجلات Orax المحاسبية دون API أعمال.
 
 ## مراجع
 

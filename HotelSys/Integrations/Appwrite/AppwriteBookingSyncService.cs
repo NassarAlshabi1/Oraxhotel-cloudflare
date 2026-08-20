@@ -45,11 +45,16 @@ public sealed class AppwriteBookingSyncService
         var remoteDocuments = (await _client.ListDocumentsAsync(_options.BookingsCollectionId, cancellationToken)).Documents.ToList();
         var serverDocuments = remoteDocuments.Where(AppwriteSyncPrimitives.IsServerOwned).ToList();
         var remoteByServerId = AppwriteSyncPrimitives.UniqueByLong(serverDocuments, "serverBookingId", out var ambiguousServerIds);
-        var legacyDocuments = remoteDocuments
-            .Where(document => string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "origin"))
-                && string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "sync_origin")))
+        // المستندات الحالية في Appwrite قديمة: تحمل origin=server لكن serverBookingId=null.
+        // نطابقها بالغرفة وتاريخ الدخول فقط إذا كانت server-owned، أو legacy بلا origin.
+        // مستندات origin=local لا تدخل في المطابقة حتى لا يكتب Orax فوق حجز أنشأه الهاتف.
+        var compositeCandidates = remoteDocuments
+            .Where(document => AppwriteSyncPrimitives.ReadInt64(document.Data, "serverBookingId") is null)
+            .Where(document => AppwriteSyncPrimitives.IsServerOwned(document)
+                || (string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "origin"))
+                    && string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "sync_origin"))))
             .ToList();
-        var remoteByComposite = BuildUniqueCompositeMap(legacyDocuments, out var ambiguousComposites);
+        var remoteByComposite = BuildUniqueCompositeMap(compositeCandidates, out var ambiguousComposites);
 
         var rooms = _db.RoomsTables.ToList().ToDictionary(room => room.Id);
         var myCustomers = _db.MyCustomers.ToList().ToDictionary(customer => customer.Id);

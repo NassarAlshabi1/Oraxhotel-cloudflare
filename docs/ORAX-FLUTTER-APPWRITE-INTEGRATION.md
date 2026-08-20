@@ -45,7 +45,7 @@
 | `Status=3` | `checked_out` |
 | `Status=4` | `cancelled` |
 
-تستخدم المزامنة `serverBookingId` كهوية أساسية. ولتسوية المستندات القديمة التي لا تحمل هذا الحقل، يُستخدم fallback وحيد على `roomNumber + checkinDate`; إذا تكرر المفتاح تتخطى الخدمة السجل وتسجل تعارضاً. أما السجلات التي لا تطابق شيئاً فتستخدم المعرف الثابت `orax-booking-{id}`.
+تستخدم المزامنة `serverBookingId` كهوية أساسية. ولتسوية المستندات القديمة التي لا تحمل هذا الحقل، يُستخدم fallback وحيد على `roomNumber + checkinDate` للمستندات الموثقة كمصدر server أو legacy بلا مصدر. المستندات `origin=local` لا تدخل في المطابقة حتى لا يكتب Orax فوق حجز أنشأه الهاتف. إذا تكرر المفتاح تتخطى الخدمة السجل وتسجل تعارضاً. أما السجلات التي لا تطابق شيئاً فتستخدم المعرف الثابت `orax-booking-{id}`.
 
 يُحسب `hotelDayCheckin` و`hotelDayCheckout` بقاعدة Flutter نفسها: بداية اليوم الفندقي عند الساعة 14:01، وما قبلها ينتمي إلى اليوم التقويمي السابق. ويُحسب الحد الأدنى لعدد الليالي بقاعدة `Time.nightsWithCutoff` المكافئة في الخادم.
 
@@ -53,7 +53,7 @@
 
 تقرأ `AppwriteGuestInfoSyncService` سجلات `MyCustomer` مع سجل `CustomerTable` المرتبط، وتنشر الاسم والجنسية ونوع ورقم الإثبات وتاريخ ومكان الإصدار والملاحظات. تختار الخدمة الغرفة من أحدث حجز نشط للنزيل، مع استبعاد الحجوزات الخارجة أو الملغاة. إذا لم يوجد حجز نشط، تُرسل `roomNumber` كسلسلة فارغة دون اختلاق غرفة.
 
-هوية ملف النزيل هي `CustomerTable.Id` وليس `MyCustomer.Id`، لأن `CustomerTable` هو مصدر حقول الهوية نفسها. عند وجود تكرار في `serverId` البعيد، لا يتم الاختيار العشوائي ويُسجل تعارض.
+هوية ملف النزيل هي `CustomerTable.Id` وليس `MyCustomer.Id`، لأن `CustomerTable` هو مصدر حقول الهوية نفسها. ولتسوية المستندات القديمة ذات `serverId=null`، تستخدم الخدمة `guestName + idNumber + nationality` فقط عندما يكون رقم الإثبات موجوداً؛ التكرار يؤدي إلى تعارض وتخطٍ، بينما تبقى مستندات `origin=local` محمية من الكتابة فوقها.
 
 ## مزامنة المدفوعات
 
@@ -70,7 +70,7 @@
 | `Note` | `notes` |
 | `RestAmount > 0` | `isPendingBalance=true` |
 
-تُنشر الدفعة كمستند immutable من مصدر `server` و`sync_origin=orax`. لا يُجرى حذف أو عكس دفعة في هذه المرحلة، ولا يُفترض أن `BillsTable` يغطي سندات أخرى مثل `BondTable` دون تحقق مستقل من مخطط قاعدة البيانات.
+تُنشر الدفعة كمستند immutable من مصدر `server` و`sync_origin=orax`. ولتسوية المستندات القديمة ذات `serverPaymentId=null`، تستخدم الخدمة `roomNumber + paymentDate` حتى مستوى الثانية + `amount`، مع رفض أي تكرار. لا يدخل `paymentMethod` في الهوية لأنه يختلف نصياً بين Orax والبيانات الحالية في Flutter. لا يُجرى حذف أو عكس دفعة في هذه المرحلة، ولا يُفترض أن `BillsTable` يغطي سندات أخرى مثل `BondTable` دون تحقق مستقل من مخطط قاعدة البيانات.
 
 ## REST وpagination
 
@@ -82,6 +82,8 @@ queries[]={"method":"offset","values":[0]}
 ```
 
 يستمر العميل حتى جمع العدد الموجود في `total`، ويتوقف بخطأ واضح إذا انتهت صفحة قصيرة قبل اكتمال العدد أو لم يتطابق العدد النهائي. لا تعتمد خدمات الكيانات على استجابة الصفحة الأولى فقط.
+
+أثبت فحص استجابة Appwrite الفعلية أن خصائص المستند مثل `origin` و`roomNumber` و`serverBookingId` تُعاد على المستوى الأعلى للمستند، وليست داخل كائن `data`. لذلك يستخدم `AppwriteDocument` الآن `JsonExtensionData` لالتقاط الخصائص الديناميكية، ويعرضها داخلياً عبر `Data` موحد؛ كما يدعم الاستجابة المتداخلة القديمة احتياطياً. هذا التفصيل ضروري حتى تعمل مطابقة الهوية فعلياً مع REST Cloud.
 
 ## الخدمات ونقاط الإدارة
 
@@ -109,6 +111,9 @@ queries[]={"method":"offset","values":[0]}
 |---|---|
 | بناء `HotelSys.csproj` للهدف `win-x64` | ناجح: `0 Error(s)`؛ التحذيرات القائمة من Views وأكواد قديمة خارج التكامل |
 | قراءة collections بالت pagination JSON الرسمية | `rooms=20`, `bookings=200`, `payments=1125`, `guest_infos=119`، وكلها HTTP 200 |
+| AppwriteRestClient runtime probe | جمع 200 حجزاً فعلياً عبر صفحتين 100+100، مع التحقق من `origin` و`roomNumber` و`serverBookingId` top-level |
+| تدقيق legacy identities | `bookings`: 199 server و1 local مع 14 مفاتيح room/date مكررة؛ `guest_infos`: 87 server و32 local مع 5 هويات نزيل مكررة؛ `payments`: 896 server و229 local دون تكرار room/date/amount |
+| probe payloads الإنتاجية | قبول إنشاء وحذف payloads واقعية للحجز والدفعة والنزيل مع الحقول الاختيارية `null`: HTTP 201 ثم HTTP 204 |
 | probe إنشاء وحذف `rooms` | إنشاء HTTP 201، حذف HTTP 204 |
 | probe إنشاء وحذف `bookings` | إنشاء HTTP 201، حذف HTTP 204 |
 | probe إنشاء وحذف `payments` | إنشاء HTTP 201، حذف HTTP 204 |

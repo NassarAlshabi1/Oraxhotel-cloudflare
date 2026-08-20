@@ -45,6 +45,13 @@ public sealed class AppwritePaymentSyncService
         var remoteDocuments = (await _client.ListDocumentsAsync(_options.PaymentsCollectionId, cancellationToken)).Documents.ToList();
         var serverDocuments = remoteDocuments.Where(AppwriteSyncPrimitives.IsServerOwned).ToList();
         var remoteByServerId = AppwriteSyncPrimitives.UniqueByLong(serverDocuments, "serverPaymentId", out var ambiguousServerIds);
+        var compositeCandidates = remoteDocuments
+            .Where(document => AppwriteSyncPrimitives.ReadInt64(document.Data, "serverPaymentId") is null)
+            .Where(document => AppwriteSyncPrimitives.IsServerOwned(document)
+                || (string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "origin"))
+                    && string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "sync_origin"))))
+            .ToList();
+        var remoteByComposite = BuildUniquePaymentMap(compositeCandidates, out var ambiguousComposites);
         var receptions = _db.RecetionTables.ToList().ToDictionary(reception => reception.Id);
         var rooms = _db.RoomsTables.ToList().ToDictionary(room => room.Id);
         var bills = _db.BillsTables
@@ -64,6 +71,12 @@ public sealed class AppwritePaymentSyncService
                 continue;
             }
 
+            var roomNumber = rooms.TryGetValue(reception.IdRoom, out var room)
+                ? AppwriteSyncPrimitives.Text(room.NameR, 50)
+                : string.Empty;
+            var paymentDate = bill.Date;
+            var composite = PaymentCompositeKey(roomNumber, paymentDate, bill.PayAmount.GetValueOrDefault());
+
             if (ambiguousServerIds.Contains(bill.Id))
             {
                 result.Conflicts++;
@@ -72,13 +85,21 @@ public sealed class AppwritePaymentSyncService
             }
 
             remoteByServerId.TryGetValue(bill.Id, out var remote);
+            if (remote is null && composite.Length > 0)
+            {
+                if (ambiguousComposites.Contains(composite))
+                {
+                    result.Conflicts++;
+                    _logger.LogWarning("Payment sync skipped BillsTable {BillId}: duplicate remote payment identity {Composite}.", bill.Id, composite);
+                    continue;
+                }
+
+                remoteByComposite.TryGetValue(composite, out remote);
+            }
+
             var documentId = remote?.Id ?? $"orax-payment-{bill.Id}";
             var now = DateTimeOffset.UtcNow;
             var nowSeconds = now.ToUnixTimeSeconds();
-            var roomNumber = rooms.TryGetValue(reception.IdRoom, out var room)
-                ? AppwriteSyncPrimitives.Text(room.NameR, 50)
-                : string.Empty;
-            var paymentDate = bill.Date;
             var payload = new Dictionary<string, object?>
             {
                 ["localUuid"] = AppwriteSyncPrimitives.DeterministicUuid("payment", bill.Id),
@@ -127,4 +148,38 @@ public sealed class AppwritePaymentSyncService
 
         return result;
     }
+
+    private static Dictionary<string, AppwriteDocument> BuildUniquePaymentMap(
+        IEnumerable<AppwriteDocument> documents,
+        out HashSet<string> ambiguous)
+    {
+        var grouped = documents
+            .Select(document => new
+            {
+                Document = document,
+                Key = PaymentCompositeKey(
+                    AppwriteSyncPrimitives.ReadString(document.Data, "roomNumber"),
+                    ParseDate(AppwriteSyncPrimitives.ReadDateText(document.Data, "paymentDate")),
+                    AppwriteSyncPrimitives.ReadDouble(document.Data, "amount") ?? 0d)
+            })
+            .Where(item => item.Key.Length > 0)
+            .GroupBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var duplicateKeys = grouped.Where(group => group.Count() > 1).Select(group => group.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        ambiguous = duplicateKeys;
+        return grouped
+            .Where(group => !duplicateKeys.Contains(group.Key))
+            .ToDictionary(group => group.Key, group => group.First().Document, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string PaymentCompositeKey(string? roomNumber, DateTime paymentDate, double amount)
+    {
+        if (string.IsNullOrWhiteSpace(roomNumber) || paymentDate == DateTime.MinValue) return string.Empty;
+        return $"{AppwriteSyncPrimitives.Text(roomNumber, 50).ToUpperInvariant()}|{paymentDate:yyyy-MM-ddTHH:mm:ss}|{amount.ToString("G17", CultureInfo.InvariantCulture)}";
+    }
+
+    private static DateTime ParseDate(string? value) =>
+        DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsed)
+            ? parsed
+            : DateTime.MinValue;
 }

@@ -45,6 +45,13 @@ public sealed class AppwriteGuestInfoSyncService
         var remoteDocuments = (await _client.ListDocumentsAsync(_options.GuestInfosCollectionId, cancellationToken)).Documents.ToList();
         var serverDocuments = remoteDocuments.Where(AppwriteSyncPrimitives.IsServerOwned).ToList();
         var remoteByServerId = AppwriteSyncPrimitives.UniqueByLong(serverDocuments, "serverId", out var ambiguousServerIds);
+        var compositeCandidates = remoteDocuments
+            .Where(document => AppwriteSyncPrimitives.ReadInt64(document.Data, "serverId") is null)
+            .Where(document => AppwriteSyncPrimitives.IsServerOwned(document)
+                || (string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "origin"))
+                    && string.IsNullOrWhiteSpace(AppwriteSyncPrimitives.ReadString(document.Data, "sync_origin"))))
+            .ToList();
+        var remoteByComposite = BuildUniqueGuestMap(compositeCandidates, out var ambiguousComposites);
         var myCustomers = _db.MyCustomers.ToList();
         var customers = _db.CustomerTables.ToList().ToDictionary(customer => customer.Id);
         var receptions = _db.RecetionTables.ToList();
@@ -69,7 +76,20 @@ public sealed class AppwriteGuestInfoSyncService
                 continue;
             }
 
+            var composite = GuestCompositeKey(customer);
             remoteByServerId.TryGetValue(customer.Id, out var remote);
+            if (remote is null && composite.Length > 0)
+            {
+                if (ambiguousComposites.Contains(composite))
+                {
+                    result.Conflicts++;
+                    _logger.LogWarning("Guest sync skipped CustomerTable {CustomerId}: duplicate remote guest identity {Composite}.", customer.Id, composite);
+                    continue;
+                }
+
+                remoteByComposite.TryGetValue(composite, out remote);
+            }
+
             var documentId = remote?.Id ?? $"orax-guest-{customer.Id}";
             var now = DateTimeOffset.UtcNow;
             var nowSeconds = now.ToUnixTimeSeconds();
@@ -115,6 +135,38 @@ public sealed class AppwriteGuestInfoSyncService
         }
 
         return result;
+    }
+
+    private static Dictionary<string, AppwriteDocument> BuildUniqueGuestMap(
+        IEnumerable<AppwriteDocument> documents,
+        out HashSet<string> ambiguous)
+    {
+        var grouped = documents
+            .Select(document => new { Document = document, Key = GuestCompositeKey(document.Data) })
+            .Where(item => item.Key.Length > 0)
+            .GroupBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var duplicateKeys = grouped.Where(group => group.Count() > 1).Select(group => group.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        ambiguous = duplicateKeys;
+        return grouped
+            .Where(group => !duplicateKeys.Contains(group.Key))
+            .ToDictionary(group => group.Key, group => group.First().Document, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string GuestCompositeKey(CustomerTable customer) =>
+        GuestCompositeKey(customer.Name, customer.NumProof, customer.Nationality);
+
+    private static string GuestCompositeKey(IReadOnlyDictionary<string, System.Text.Json.JsonElement> data) =>
+        GuestCompositeKey(
+            AppwriteSyncPrimitives.ReadString(data, "guestName"),
+            AppwriteSyncPrimitives.ReadString(data, "idNumber"),
+            AppwriteSyncPrimitives.ReadString(data, "nationality"));
+
+    private static string GuestCompositeKey(string? name, string? idNumber, string? nationality)
+    {
+        var normalizedId = AppwriteSyncPrimitives.Text(idNumber, 100);
+        if (normalizedId.Length == 0) return string.Empty;
+        return $"{AppwriteSyncPrimitives.Text(name, 100).ToUpperInvariant()}|{normalizedId.ToUpperInvariant()}|{AppwriteSyncPrimitives.Text(nationality, 50).ToUpperInvariant()}";
     }
 
     private static Dictionary<long, string> BuildActiveRoomMap(

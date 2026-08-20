@@ -77,6 +77,15 @@ internal static class AppwriteSyncPrimitives
         };
     }
 
+    public static double? ReadDouble(IReadOnlyDictionary<string, JsonElement>? data, string key)
+    {
+        if (data is null || !data.TryGetValue(key, out var element)) return null;
+        if (element.ValueKind == JsonValueKind.Number && element.TryGetDouble(out var number)) return number;
+        if (element.ValueKind == JsonValueKind.String
+            && double.TryParse(element.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out number)) return number;
+        return null;
+    }
+
     public static bool IsServerOwned(AppwriteDocument document)
     {
         var origin = ReadString(document.Data, "origin");

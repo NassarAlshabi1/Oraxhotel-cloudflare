@@ -176,5 +176,35 @@ public sealed class AppwriteDocumentPage
 public sealed class AppwriteDocument
 {
     [JsonPropertyName("$id")] public string Id { get; set; } = string.Empty;
-    [JsonPropertyName("data")] public Dictionary<string, JsonElement> Data { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    // Appwrite REST يعيد attributes على مستوى المستند نفسه، وليس داخل data.
+    // JsonExtensionData يلتقط الحقول الديناميكية مثل origin وserverBookingId.
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement> Fields { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public Dictionary<string, JsonElement> Data
+    {
+        get
+        {
+            var data = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+            if (Fields.TryGetValue("data", out var nested) && nested.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in nested.EnumerateObject())
+                {
+                    data[property.Name] = property.Value;
+                }
+            }
+
+            foreach (var field in Fields)
+            {
+                if (!field.Key.StartsWith("$", StringComparison.Ordinal))
+                {
+                    data[field.Key] = field.Value;
+                }
+            }
+
+            return data;
+        }
+    }
 }
