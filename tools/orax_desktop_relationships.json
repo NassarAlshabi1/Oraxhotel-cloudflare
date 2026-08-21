@@ -1,0 +1,408 @@
+{
+  "source": "/home/ubuntu/oraxhotel2024/HotelSys/db/db.generated.cs",
+  "relationship_count": 40,
+  "source_relationship_count": 39,
+  "review_relationship_count": 1,
+  "relationships": [
+    {
+      "child_table": "account_table",
+      "child_column": "id_group",
+      "parent_table": "group_account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<AccountTable> Fkgroupaccountaccounts { get",
+      "source_class": "GroupAccountTable"
+    },
+    {
+      "child_table": "area_table",
+      "child_column": "id_city",
+      "parent_table": "city_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<AreaTable> Areatablecitytables { get",
+      "source_class": "CityTable"
+    },
+    {
+      "child_table": "bank_table",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "AccountTable Fkbankaccount { get",
+      "source_class": "BankTable"
+    },
+    {
+      "child_table": "bills_table",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "AccountTable Fkbillsaccount { get",
+      "source_class": "BillsTable"
+    },
+    {
+      "child_table": "bills_table",
+      "child_column": "id_reception",
+      "parent_table": "recetion_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<BillsTable> Fkbillsreceptions { get",
+      "source_class": "RecetionTable"
+    },
+    {
+      "child_table": "bond_table",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "AccountTable Fkbondaccount { get",
+      "source_class": "BondTable"
+    },
+    {
+      "child_table": "bond_table",
+      "child_column": "id_bond_pay",
+      "parent_table": "bond_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<BondTable> FkBondBondBackReferences { get",
+      "source_class": "BondTable"
+    },
+    {
+      "child_table": "bond_table",
+      "child_column": "id_item_expenses",
+      "parent_table": "items_expenses_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<BondTable> Fkbondexpenses { get",
+      "source_class": "ItemsExpensesTable"
+    },
+    {
+      "child_table": "boxs_table",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "AccountTable Fkboxsaccount { get",
+      "source_class": "BoxsTable"
+    },
+    {
+      "child_table": "boxs_user_table",
+      "child_column": "id_aspUser",
+      "parent_table": "AspNetUsers",
+      "parent_column": "Id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "AspNetUser BoxsusertableAspNetUser { get",
+      "source_class": "BoxsUserTable"
+    },
+    {
+      "child_table": "boxs_user_table",
+      "child_column": "id_box",
+      "parent_table": "boxs_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "BoxsTable Boxsusertableboxstable { get",
+      "source_class": "BoxsUserTable"
+    },
+    {
+      "child_table": "city_table",
+      "child_column": "id_country",
+      "parent_table": "country_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<CityTable> Citytablecountrytables { get",
+      "source_class": "CountryTable"
+    },
+    {
+      "child_table": "company_table",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "AccountTable Fkcompanyaccount { get",
+      "source_class": "CompanyTable"
+    },
+    {
+      "child_table": "customer_table",
+      "child_column": "id_area",
+      "parent_table": "area_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "AreaTable Customertableareatable { get",
+      "source_class": "CustomerTable"
+    },
+    {
+      "child_table": "detials_bills_table",
+      "child_column": "id_bill",
+      "parent_table": "bills_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "BillsTable Fkbillsdetialsbill { get",
+      "source_class": "DetialsBillsTable"
+    },
+    {
+      "child_table": "detials_bills_table",
+      "child_column": "id_product",
+      "parent_table": "product_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<DetialsBillsTable> Fkproductservicesdetials { get",
+      "source_class": "ProductTable"
+    },
+    {
+      "child_table": "detials_hotel_table",
+      "child_column": "id_ho",
+      "parent_table": "hotels_branch_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<DetialsHotelTable> Fkdetialshotelhotels { get",
+      "source_class": "HotelsBranchTable"
+    },
+    {
+      "child_table": "detials_status_table",
+      "child_column": "id_status_before",
+      "parent_table": "detials_status_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<DetialsStatusTable> FkDetialsStatusTableDetialsStatusTableBackReferences { get",
+      "source_class": "DetialsStatusTable"
+    },
+    {
+      "child_table": "entries_acc_table",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "AccountTable Fkentriesaccaccount { get",
+      "source_class": "EntriesAccTable"
+    },
+    {
+      "child_table": "follower_reception_table",
+      "child_column": "id_customer",
+      "parent_table": "customer_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "CustomerTable Followerreceptiontablecustomertable { get",
+      "source_class": "FollowerReceptionTable"
+    },
+    {
+      "child_table": "follower_reception_table",
+      "child_column": "id_receptoin",
+      "parent_table": "recetion_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<FollowerReceptionTable> Fkcustomersreceptionreceptions { get",
+      "source_class": "RecetionTable"
+    },
+    {
+      "child_table": "group_account_table",
+      "child_column": "id_main_group",
+      "parent_table": "group_account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<GroupAccountTable> FkGroupAccountGroupAccountBackReferences { get",
+      "source_class": "GroupAccountTable"
+    },
+    {
+      "child_table": "hotels_branch_table",
+      "child_column": "id_country",
+      "parent_table": "country_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "CountryTable Hotelstablecountrytable { get",
+      "source_class": "HotelsBranchTable"
+    },
+    {
+      "child_table": "hotels_branch_table",
+      "child_column": "id_org",
+      "parent_table": "orgs_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<HotelsBranchTable> Hotelsbranchtableorgtables { get",
+      "source_class": "OrgsTable"
+    },
+    {
+      "child_table": "items_expenses_table",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "AccountTable Itemsexpensestableaccounttable { get",
+      "source_class": "ItemsExpensesTable"
+    },
+    {
+      "child_table": "jop_emp_table",
+      "child_column": "id_emp",
+      "parent_table": "emp_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "EmpTable Fkjopempemp { get",
+      "source_class": "JopEmpTable"
+    },
+    {
+      "child_table": "jop_emp_table",
+      "child_column": "id_job_name",
+      "parent_table": "emp_table",
+      "parent_column": "id",
+      "confidence": "review",
+      "nullable": false,
+      "property_type": "EmpTable Fkjopempjob { get",
+      "source_class": "JopEmpTable"
+    },
+    {
+      "child_table": "my_customers",
+      "child_column": "id_account",
+      "parent_table": "account_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "AccountTable Mycustomersaccounttable { get",
+      "source_class": "MyCustomer"
+    },
+    {
+      "child_table": "my_customers",
+      "child_column": "id_customer",
+      "parent_table": "customer_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "CustomerTable Mycustomerscustomertable { get",
+      "source_class": "MyCustomer"
+    },
+    {
+      "child_table": "orgs_table",
+      "child_column": "id_country",
+      "parent_table": "country_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "CountryTable Orgtablecountrytable { get",
+      "source_class": "OrgsTable"
+    },
+    {
+      "child_table": "price_rooms_table",
+      "child_column": "id_room",
+      "parent_table": "rooms_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<PriceRoomsTable> Fkroomspricerooms { get",
+      "source_class": "RoomsTable"
+    },
+    {
+      "child_table": "price_rooms_table",
+      "child_column": "id_tax_group",
+      "parent_table": "tax_group_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<PriceRoomsTable> Priceroomstabletaxgrouptables { get",
+      "source_class": "TaxGroupTable"
+    },
+    {
+      "child_table": "product_table",
+      "child_column": "id_group",
+      "parent_table": "group_services_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "GroupServicesTable Fkgroupservicesproductservice { get",
+      "source_class": "ProductTable"
+    },
+    {
+      "child_table": "product_table",
+      "child_column": "id_tax_group",
+      "parent_table": "tax_group_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<ProductTable> Producttabletaxgrouptables { get",
+      "source_class": "TaxGroupTable"
+    },
+    {
+      "child_table": "recetion_table",
+      "child_column": "id_co",
+      "parent_table": "company_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "CompanyTable Fkcompanyrecetion { get",
+      "source_class": "RecetionTable"
+    },
+    {
+      "child_table": "recetion_table",
+      "child_column": "id_my_customer",
+      "parent_table": "my_customers",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "MyCustomer Recetiontablemycustomer { get",
+      "source_class": "RecetionTable"
+    },
+    {
+      "child_table": "recetion_table",
+      "child_column": "id_room",
+      "parent_table": "rooms_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<RecetionTable> Recetiontableroomstables { get",
+      "source_class": "RoomsTable"
+    },
+    {
+      "child_table": "rooms_table",
+      "child_column": "id_ho",
+      "parent_table": "hotels_branch_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "HotelsBranchTable Fkroomshotel { get",
+      "source_class": "RoomsTable"
+    },
+    {
+      "child_table": "rooms_table",
+      "child_column": "id_type",
+      "parent_table": "type_rooms_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": true,
+      "property_type": "IEnumerable<RoomsTable> Fkroomstyperooms { get",
+      "source_class": "TypeRoomsTable"
+    },
+    {
+      "child_table": "status_current_table",
+      "child_column": "id_room",
+      "parent_table": "rooms_table",
+      "parent_column": "id",
+      "confidence": "source",
+      "nullable": false,
+      "property_type": "RoomsTable Fkdetialsstatusroom { get",
+      "source_class": "StatusCurrentTable"
+    }
+  ]
+}

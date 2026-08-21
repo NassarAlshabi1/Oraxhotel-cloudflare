@@ -7,6 +7,7 @@ import { Database, isValidEntity } from './database';
 import { authMiddleware, handleLogin, hashPassword, signToken } from './auth';
 import { handlePull, handlePush, handleSyncLog, handleConflicts, handleMigrate } from './sync';
 import { SyncLockDO } from './sync-lock';
+import { handleDesktopCommands } from './desktop-commands';
 
 // ─── Environment bindings ─────────────────────────────────────
 
@@ -236,6 +237,14 @@ export default {
 
       const ctx = authResult.context!;
       const db = new Database(env.DB);
+
+      // ─── Desktop-first command queue ─────────────────────
+      // Mobile changes are queued for the desktop SQL Server publisher.
+      if (path === '/api/desktop/commands' && method === 'POST') {
+        const response = await handleDesktopCommands(request, db, ctx);
+        logRequest(method, path, response.status, Date.now() - startTime, clientIp);
+        return response;
+      }
 
       // ─── Sync Pull ──────────────────────────────────────
       if (path === '/api/sync/pull' && method === 'GET') {

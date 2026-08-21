@@ -1,0 +1,3931 @@
+{
+  "source": "/home/ubuntu/oraxhotel2024/HotelSys/database/Hotel_alkheer_init.sql",
+  "database_name": "Hotel_alkheer",
+  "dialect": "Microsoft SQL Server",
+  "table_count": 47,
+  "tables": [
+    {
+      "table_name": "account_table",
+      "schema": "dbo",
+      "source_line": 26,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NOT NULL"
+        },
+        {
+          "name": "status",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "is_private",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "id_group",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "code",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 7
+    },
+    {
+      "table_name": "admin_table",
+      "schema": "dbo",
+      "source_line": 41,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(70)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(70) NOT NULL"
+        },
+        {
+          "name": "username",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "password",
+          "sql_server_type": "NVARCHAR(200)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(200) NOT NULL"
+        },
+        {
+          "name": "status",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "lastdate_login",
+          "sql_server_type": "DATE",
+          "base_type": "DATE",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "date NULL"
+        },
+        {
+          "name": "adminid",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 7
+    },
+    {
+      "table_name": "area_table",
+      "schema": "dbo",
+      "source_line": 56,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(200)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(200) NOT NULL"
+        },
+        {
+          "name": "id_city",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "name_en",
+          "sql_server_type": "NVARCHAR(200)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(200) NULL"
+        },
+        {
+          "name": "name_ar_tashkeel",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "name_ar_normalized",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "name_en_normalized",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 7
+    },
+    {
+      "table_name": "AspNetRoles",
+      "schema": "dbo",
+      "source_line": 71,
+      "columns": [
+        {
+          "name": "Id",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        },
+        {
+          "name": "Name",
+          "sql_server_type": "NVARCHAR(256)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(256) NULL"
+        },
+        {
+          "name": "NormalizedName",
+          "sql_server_type": "NVARCHAR(256)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(256) NULL"
+        },
+        {
+          "name": "ConcurrencyStamp",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "Id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "AspNetRoleClaims",
+      "schema": "dbo",
+      "source_line": 83,
+      "columns": [
+        {
+          "name": "Id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "RoleId",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        },
+        {
+          "name": "ClaimType",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "ClaimValue",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "Id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "AspNetUsers",
+      "schema": "dbo",
+      "source_line": 95,
+      "columns": [
+        {
+          "name": "Id",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        },
+        {
+          "name": "UserName",
+          "sql_server_type": "NVARCHAR(256)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(256) NULL"
+        },
+        {
+          "name": "NormalizedUserName",
+          "sql_server_type": "NVARCHAR(256)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(256) NULL"
+        },
+        {
+          "name": "Email",
+          "sql_server_type": "NVARCHAR(256)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(256) NULL"
+        },
+        {
+          "name": "NormalizedEmail",
+          "sql_server_type": "NVARCHAR(256)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(256) NULL"
+        },
+        {
+          "name": "EmailConfirmed",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        },
+        {
+          "name": "PasswordHash",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "SecurityStamp",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "ConcurrencyStamp",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "PhoneNumber",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "PhoneNumberConfirmed",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        },
+        {
+          "name": "TwoFactorEnabled",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        },
+        {
+          "name": "LockoutEnd",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "LockoutEnabled",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        },
+        {
+          "name": "AccessFailedCount",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "FirstName",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NULL"
+        },
+        {
+          "name": "LastName",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NULL"
+        }
+      ],
+      "primary_key": [
+        "Id"
+      ],
+      "column_count": 17
+    },
+    {
+      "table_name": "AspNetUserClaims",
+      "schema": "dbo",
+      "source_line": 120,
+      "columns": [
+        {
+          "name": "Id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "UserId",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        },
+        {
+          "name": "ClaimType",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "ClaimValue",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "Id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "AspNetUserLogins",
+      "schema": "dbo",
+      "source_line": 132,
+      "columns": [
+        {
+          "name": "LoginProvider",
+          "sql_server_type": "NVARCHAR(128)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(128) NOT NULL"
+        },
+        {
+          "name": "ProviderKey",
+          "sql_server_type": "NVARCHAR(128)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(128) NOT NULL"
+        },
+        {
+          "name": "ProviderDisplayName",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "UserId",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "LoginProvider",
+        "ProviderKey"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "AspNetUserRoles",
+      "schema": "dbo",
+      "source_line": 144,
+      "columns": [
+        {
+          "name": "UserId",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        },
+        {
+          "name": "RoleId",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "UserId",
+        "RoleId"
+      ],
+      "column_count": 2
+    },
+    {
+      "table_name": "AspNetUserTokens",
+      "schema": "dbo",
+      "source_line": 154,
+      "columns": [
+        {
+          "name": "UserId",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        },
+        {
+          "name": "LoginProvider",
+          "sql_server_type": "NVARCHAR(128)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(128) NOT NULL"
+        },
+        {
+          "name": "Name",
+          "sql_server_type": "NVARCHAR(128)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(128) NOT NULL"
+        },
+        {
+          "name": "Value",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "UserId",
+        "LoginProvider",
+        "Name"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "bank_table",
+      "schema": "dbo",
+      "source_line": 166,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NOT NULL"
+        },
+        {
+          "name": "is_default",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 5
+    },
+    {
+      "table_name": "bills_table",
+      "schema": "dbo",
+      "source_line": 179,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "type",
+          "sql_server_type": "NVARCHAR(20)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(20) NOT NULL"
+        },
+        {
+          "name": "type_pay",
+          "sql_server_type": "NVARCHAR(20)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(20) NOT NULL"
+        },
+        {
+          "name": "num_reference",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NULL"
+        },
+        {
+          "name": "date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "total",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "is_for_room",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        },
+        {
+          "name": "deserve_amount",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "type_discount",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "qty_discount",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "pay_amount",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "rest_amount",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "num_check",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "num_card",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "note",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_reception",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "id_bank",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "customer_or_company",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "id_currancy",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "total_tax_price",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "total_tax_rate",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "include_tax",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "total_baladi_tax_price",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "total_baladi_tax_rate",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "is_baladi_tax",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 27
+    },
+    {
+      "table_name": "bond_table",
+      "schema": "dbo",
+      "source_line": 214,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "type",
+          "sql_server_type": "NVARCHAR(20)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(20) NOT NULL"
+        },
+        {
+          "name": "type_pay",
+          "sql_server_type": "NVARCHAR(20)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(20) NOT NULL"
+        },
+        {
+          "name": "num_reference",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NULL"
+        },
+        {
+          "name": "date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "amount",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "float NOT NULL"
+        },
+        {
+          "name": "loc_pay",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NULL"
+        },
+        {
+          "name": "worthy_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "why",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "hand",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "num_check",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "num_card",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "note",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "is_done_pay",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "id_bond_pay",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_reception",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "id_item_expenses",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_bank",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_currancy",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "time",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 22
+    },
+    {
+      "table_name": "boxs_table",
+      "schema": "dbo",
+      "source_line": 244,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NOT NULL"
+        },
+        {
+          "name": "is_default",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "is_private",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 6
+    },
+    {
+      "table_name": "boxs_user_table",
+      "schema": "dbo",
+      "source_line": 258,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "id_box",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_aspUser",
+          "sql_server_type": "NVARCHAR(450)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(450) NOT NULL"
+        },
+        {
+          "name": "is_defult",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "change_room_table",
+      "schema": "dbo",
+      "source_line": 270,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "id_room_from",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_room_to",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "why",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "price_old",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "float NOT NULL"
+        },
+        {
+          "name": "price_current",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "float NOT NULL"
+        },
+        {
+          "name": "id_receptoin",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 9
+    },
+    {
+      "table_name": "city_table",
+      "schema": "dbo",
+      "source_line": 287,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "id_country",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "name_en",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "company_table",
+      "schema": "dbo",
+      "source_line": 299,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "condition_reception_table",
+      "schema": "dbo",
+      "source_line": 311,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "num",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "country_table",
+      "schema": "dbo",
+      "source_line": 323,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(200)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(200) NOT NULL"
+        },
+        {
+          "name": "name_en",
+          "sql_server_type": "NVARCHAR(200)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(200) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 3
+    },
+    {
+      "table_name": "currency_table",
+      "schema": "dbo",
+      "source_line": 334,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NOT NULL"
+        },
+        {
+          "name": "is_default",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "code",
+          "sql_server_type": "NVARCHAR(5)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(5) NULL"
+        },
+        {
+          "name": "rate_convert",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 6
+    },
+    {
+      "table_name": "customer_table",
+      "schema": "dbo",
+      "source_line": 348,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "type",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NOT NULL"
+        },
+        {
+          "name": "sex",
+          "sql_server_type": "NVARCHAR(10)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(10) NULL"
+        },
+        {
+          "name": "email",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "nationality",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NOT NULL"
+        },
+        {
+          "name": "type_work",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NULL"
+        },
+        {
+          "name": "loc_work",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NULL"
+        },
+        {
+          "name": "phone_work",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NULL"
+        },
+        {
+          "name": "type_proof",
+          "sql_server_type": "NVARCHAR(30)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(30) NOT NULL"
+        },
+        {
+          "name": "num_proof",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NOT NULL"
+        },
+        {
+          "name": "release_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "end_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "loc_release",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "public_note",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_area",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_nationality",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 18
+    },
+    {
+      "table_name": "detials_bills_table",
+      "schema": "dbo",
+      "source_line": 374,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "qty",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "price_one",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "total",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "id_bill",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NOT NULL"
+        },
+        {
+          "name": "id_product",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "tax_price",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "tax_rate",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "baladi_tax_price",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "baladi_tax_rate",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "is_baladi_tax",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 11
+    },
+    {
+      "table_name": "detials_hotel_table",
+      "schema": "dbo",
+      "source_line": 393,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "count_room",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "count_floot",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "id_ho",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "detials_status_table",
+      "schema": "dbo",
+      "source_line": 405,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "status",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "id_room",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "detials",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "start_date",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "end_date",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_reception",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "id_emp",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_status_before",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 11
+    },
+    {
+      "table_name": "emp_table",
+      "schema": "dbo",
+      "source_line": 424,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "img",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NULL"
+        },
+        {
+          "name": "phone",
+          "sql_server_type": "NVARCHAR(15)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(15) NOT NULL"
+        },
+        {
+          "name": "email",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "sex",
+          "sql_server_type": "NVARCHAR(10)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(10) NULL"
+        },
+        {
+          "name": "num_identity",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 8
+    },
+    {
+      "table_name": "entries_acc_table",
+      "schema": "dbo",
+      "source_line": 440,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "debt_or_Credit",
+          "sql_server_type": "NVARCHAR(1)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(1) NOT NULL"
+        },
+        {
+          "name": "amount",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "bill_or_band",
+          "sql_server_type": "NVARCHAR(10)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(10) NOT NULL"
+        },
+        {
+          "name": "id_document_dand",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "id_document_bill",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "type_document",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_currancy",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "id_recetion",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "note",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 12
+    },
+    {
+      "table_name": "follower_reception_table",
+      "schema": "dbo",
+      "source_line": 460,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "cu_type",
+          "sql_server_type": "NVARCHAR(10)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(10) NOT NULL"
+        },
+        {
+          "name": "relation",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "id_receptoin",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NOT NULL"
+        },
+        {
+          "name": "id_customer",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NOT NULL"
+        },
+        {
+          "name": "duration",
+          "sql_server_type": "NVARCHAR(1)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(1) NULL"
+        },
+        {
+          "name": "duration_from",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "duration_to",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 8
+    },
+    {
+      "table_name": "group_account_table",
+      "schema": "dbo",
+      "source_line": 476,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(100)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(100) NOT NULL"
+        },
+        {
+          "name": "id_main_group",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "is_root",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "is_private",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 6
+    },
+    {
+      "table_name": "group_services_table",
+      "schema": "dbo",
+      "source_line": 490,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "name_en",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "hotels_branch_table",
+      "schema": "dbo",
+      "source_line": 502,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name_h",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "num_en",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "country",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "city",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "regin",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "address",
+          "sql_server_type": "NVARCHAR(150)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(150) NULL"
+        },
+        {
+          "name": "email",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "phone",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "website",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "mail_box",
+          "sql_server_type": "NVARCHAR(150)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(150) NULL"
+        },
+        {
+          "name": "logo",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_country",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_org",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "count_floot",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 16
+    },
+    {
+      "table_name": "items_expenses_table",
+      "schema": "dbo",
+      "source_line": 526,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "create_at",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 5
+    },
+    {
+      "table_name": "jobs_name_table",
+      "schema": "dbo",
+      "source_line": 539,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(300)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(300) NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 3
+    },
+    {
+      "table_name": "jop_emp_table",
+      "schema": "dbo",
+      "source_line": 550,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "id_emp",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_job_name",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 3
+    },
+    {
+      "table_name": "my_customers",
+      "schema": "dbo",
+      "source_line": 561,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "id_customer",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NOT NULL"
+        },
+        {
+          "name": "idsub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "private_note",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_account",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "visit_end_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 7
+    },
+    {
+      "table_name": "orgs_table",
+      "schema": "dbo",
+      "source_line": 576,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name_h",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "num_en",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "country",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "city",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "regin",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "address",
+          "sql_server_type": "NVARCHAR(150)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(150) NULL"
+        },
+        {
+          "name": "email",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "phone",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "website",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "mail_box",
+          "sql_server_type": "NVARCHAR(150)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(150) NULL"
+        },
+        {
+          "name": "logo",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_country",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "tax_num",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 15
+    },
+    {
+      "table_name": "overtime_table",
+      "schema": "dbo",
+      "source_line": 599,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "start_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "end_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "start_time",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "end_time",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "id_user",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 8
+    },
+    {
+      "table_name": "price_rooms_table",
+      "schema": "dbo",
+      "source_line": 615,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "price",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "price_overtime",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "price_min",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_room",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_tax_group",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 7
+    },
+    {
+      "table_name": "product_table",
+      "schema": "dbo",
+      "source_line": 630,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "id_group",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "name_en",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "price",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "float NOT NULL"
+        },
+        {
+          "name": "id_tax_group",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 6
+    },
+    {
+      "table_name": "recetion_table",
+      "schema": "dbo",
+      "source_line": 644,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "bigint IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "source",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "price",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        },
+        {
+          "name": "qty_time",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "unit",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "start_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "end_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NOT NULL"
+        },
+        {
+          "name": "type_date",
+          "sql_server_type": "NVARCHAR(1)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(1) NULL"
+        },
+        {
+          "name": "is_chechin",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "checkin_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "is_chechout",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "chechout_date",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "id_room",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "note",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_co",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "id_my_customer",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "status",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "why_visit",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "area_from",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 19
+    },
+    {
+      "table_name": "rooms_table",
+      "schema": "dbo",
+      "source_line": 671,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name_r",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "num_floor",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "count_rooms",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "count_bed_single",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "count_bed_double",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "count_bathroom",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "count_tv",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "count_wallet",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "type_condition",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "public_features",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "private_features",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "note",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_ho",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_type",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 15
+    },
+    {
+      "table_name": "setting_general_table",
+      "schema": "dbo",
+      "source_line": 694,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "services_include_tax",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        },
+        {
+          "name": "enable_tax_num",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 3
+    },
+    {
+      "table_name": "setting_reception_table",
+      "schema": "dbo",
+      "source_line": 705,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "is_checkin_time",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "time_checkin",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "is_checkout_time",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "time_checkout",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "is_interval_changeroom",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "interval_changeroom",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "is_mounth_reception_checkout",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "incude_price_tax",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bit NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 10
+    },
+    {
+      "table_name": "status_current_table",
+      "schema": "dbo",
+      "source_line": 723,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "status",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "id_room",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "start_date",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "end_date",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        },
+        {
+          "name": "id_reception",
+          "sql_server_type": "BIGINT",
+          "base_type": "BIGINT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "bigint NULL"
+        },
+        {
+          "name": "id_emp",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "createat",
+          "sql_server_type": "DATETIME",
+          "base_type": "DATETIME",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "datetime NULL"
+        },
+        {
+          "name": "detials",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 9
+    },
+    {
+      "table_name": "tax_group_table",
+      "schema": "dbo",
+      "source_line": 740,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "name_en",
+          "sql_server_type": "NVARCHAR(200)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(200) NULL"
+        },
+        {
+          "name": "rate",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        },
+        {
+          "name": "id_user",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        },
+        {
+          "name": "is_baladi_tax",
+          "sql_server_type": "BIT",
+          "base_type": "BIT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "bit NOT NULL"
+        },
+        {
+          "name": "baladi_rate",
+          "sql_server_type": "FLOAT",
+          "base_type": "FLOAT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "float NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 7
+    },
+    {
+      "table_name": "type_rooms_table",
+      "schema": "dbo",
+      "source_line": 755,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "name_t",
+          "sql_server_type": "NVARCHAR(MAX)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(max) NOT NULL"
+        },
+        {
+          "name": "color",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": true,
+          "identity": false,
+          "default": null,
+          "definition": "int NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 4
+    },
+    {
+      "table_name": "user_table",
+      "schema": "dbo",
+      "source_line": 767,
+      "columns": [
+        {
+          "name": "id",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": true,
+          "default": null,
+          "definition": "int IDENTITY(1,1) NOT NULL"
+        },
+        {
+          "name": "username",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "password",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "role",
+          "sql_server_type": "NVARCHAR(50)",
+          "base_type": "NVARCHAR",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "nvarchar(50) NOT NULL"
+        },
+        {
+          "name": "id_sub",
+          "sql_server_type": "INT",
+          "base_type": "INT",
+          "nullable": false,
+          "identity": false,
+          "default": null,
+          "definition": "int NOT NULL"
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "column_count": 5
+    }
+  ]
+}

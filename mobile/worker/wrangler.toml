@@ -9,6 +9,7 @@ account_id = "81a73bba9acc1de5693ff929d0a372ce"
 binding = "DB"
 database_name = "marina-hotel-db"
 database_id = "607f1090-83b1-4281-975f-d81b8f6154e7"
+migrations_dir = "migrations"
 
 # ─── KV for rate limiting ─────────────────────────────────────
 [[kv_namespaces]]
