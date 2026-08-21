@@ -325,12 +325,19 @@ export class Database {
     delete updateFields.created_at;
     delete updateFields.server_id;
 
-    // Filter out undefined values
+    // Filter to columns that actually exist in the target table.
+    // This mirrors createRecord() and prevents payload-only fields such as
+    // _entity or stale client columns from generating D1 "no such column" errors.
+    const validColumns = await this.getTableColumns(table);
     const cleanUpdate: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(updateFields)) {
-      if (value !== undefined) {
+      if (value !== undefined && validColumns.has(key)) {
         cleanUpdate[key] = value;
       }
+    }
+
+    if (Object.keys(cleanUpdate).length === 0) {
+      return existing;
     }
 
     const setClauses = Object.keys(cleanUpdate)

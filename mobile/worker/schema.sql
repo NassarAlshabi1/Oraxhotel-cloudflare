@@ -1,55 +1,137 @@
--- ═══════════════════════════════════════════════════════════════
---  Marina Hotel — Cloudflare D1 Database Schema
---  Production-ready schema with sync fields, indexes, and triggers
--- ═══════════════════════════════════════════════════════════════
+-- Oraxhotel Cloudflare D1 schema
+-- Generated from mobile/mobile/lib/services/local_db.dart (Drift schemaVersion 51).
+-- D1/Worker infrastructure tables are defined explicitly below.
+-- Do not treat hotel_day_ledger as a Flutter Cloudflare sync entity; it is local-only in cloudflare_config.dart.
 
--- ─── Users table (for JWT auth) ───────────────────────────────
+PRAGMA foreign_keys = ON;
+
+-- Worker infrastructure -------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'staff', -- 'admin', 'manager', 'staff'
+  role TEXT NOT NULL DEFAULT 'staff',
   device_id TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   deleted_at INTEGER
 );
-
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
--- ─── Rooms ────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS rooms (
+CREATE TABLE IF NOT EXISTS devices (
   id TEXT PRIMARY KEY,
-  server_id TEXT,
-  room_number TEXT NOT NULL UNIQUE,
-  type TEXT NOT NULL,
-  price REAL NOT NULL,
-  status TEXT NOT NULL DEFAULT 'available',
-  image_url TEXT,
-  cleaning_status TEXT DEFAULT 'clean',
-  requires_maintenance INTEGER DEFAULT 0,
-  -- Sync fields
+  device_id TEXT NOT NULL UNIQUE,
+  fcm_token TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  device_name TEXT,
+  platform TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_devices_status ON devices(status);
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+  client_id TEXT NOT NULL,
+  window_start INTEGER NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (client_id, window_start)
+);
+
+CREATE TABLE IF NOT EXISTS sync_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  device_id TEXT,
+  timestamp INTEGER NOT NULL,
+  payload TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sync_log_entity ON sync_log(entity, entity_id);
+CREATE INDEX IF NOT EXISTS idx_sync_log_timestamp ON sync_log(timestamp);
+
+CREATE TABLE IF NOT EXISTS sync_conflicts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  local_payload TEXT NOT NULL,
+  remote_payload TEXT NOT NULL,
+  local_vector_clock TEXT,
+  remote_vector_clock TEXT,
+  resolution TEXT NOT NULL DEFAULT 'last_write_wins',
+  resolved_at INTEGER,
+  created_at INTEGER NOT NULL,
+  device_id TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_conflicts_entity ON sync_conflicts(entity, entity_id);
+CREATE INDEX IF NOT EXISTS idx_conflicts_created ON sync_conflicts(created_at);
+
+CREATE TABLE IF NOT EXISTS idempotency_log (
+  key TEXT PRIMARY KEY,
+  entity TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  entity_id TEXT,
+  processed_at INTEGER NOT NULL,
+  response TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_idempotency_entity ON idempotency_log(entity, entity_id);
+
+-- Flutter sync entities --------------------------------------------------
+CREATE TABLE IF NOT EXISTS rooms (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
   version INTEGER NOT NULL DEFAULT 1,
-  device_id TEXT DEFAULT '',
-  vector_clock TEXT DEFAULT '{}',
-  origin TEXT DEFAULT 'local',
-  idempotency_key TEXT
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  room_number TEXT NOT NULL UNIQUE,
+  type TEXT NOT NULL,
+  price REAL NOT NULL,
+  status TEXT NOT NULL,
+  image_url TEXT,
+  cleaning_status TEXT NOT NULL DEFAULT 'clean',
+  last_cleaned_hotel_day TEXT,
+  last_occupied_hotel_day TEXT,
+  requires_maintenance INTEGER NOT NULL DEFAULT 0
 );
 
-CREATE INDEX IF NOT EXISTS idx_rooms_updated ON rooms(updated_at);
-CREATE INDEX IF NOT EXISTS idx_rooms_status ON rooms(status, deleted_at);
-CREATE INDEX IF NOT EXISTS idx_rooms_deleted ON rooms(deleted_at);
-
--- ─── Bookings ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS bookings (
-  id TEXT PRIMARY KEY,
-  server_id TEXT,
-  room_number TEXT NOT NULL,
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  server_booking_id INTEGER,
+  room_number TEXT NOT NULL REFERENCES rooms(room_number),
   guest_name TEXT NOT NULL,
   guest_phone TEXT NOT NULL,
+  guest_id_type TEXT NOT NULL DEFAULT 'بطاقة شخصية',
+  guest_id_number TEXT NOT NULL DEFAULT '',
+  guest_id_issue_date TEXT,
+  guest_id_issue_place TEXT,
   guest_nationality TEXT NOT NULL,
   guest_email TEXT,
   guest_address TEXT,
@@ -58,160 +140,577 @@ CREATE TABLE IF NOT EXISTS bookings (
   actual_checkout TEXT,
   status TEXT NOT NULL,
   notes TEXT,
-  discount REAL DEFAULT 0,
-  discount_type TEXT DEFAULT 'per_night',
-  expected_nights INTEGER DEFAULT 1,
-  calculated_nights INTEGER DEFAULT 1,
-  total_due REAL DEFAULT 0,
-  total_paid REAL DEFAULT 0,
-  remaining_balance REAL DEFAULT 0,
-  is_fully_paid INTEGER DEFAULT 0,
-  is_overdue INTEGER DEFAULT 0,
+  discount REAL NOT NULL DEFAULT 0,
+  discount_type TEXT NOT NULL DEFAULT 'per_night',
+  discount_start_date TEXT,
+  expected_nights INTEGER NOT NULL DEFAULT 1,
+  calculated_nights INTEGER NOT NULL DEFAULT 1,
+  total_nights_cached INTEGER NOT NULL DEFAULT 0,
+  stay_duration_iso TEXT,
+  last_night_epoch INTEGER,
+  is_overdue INTEGER NOT NULL DEFAULT 0,
+  needs_checkout_review INTEGER NOT NULL DEFAULT 0,
+  total_due_cached REAL NOT NULL DEFAULT 0.0,
+  total_paid_cached REAL NOT NULL DEFAULT 0.0,
+  remaining_balance_cached REAL NOT NULL DEFAULT 0.0,
+  is_fully_paid INTEGER NOT NULL DEFAULT 0,
   hotel_day_checkin TEXT,
-  hotel_day_checkout TEXT,
-  -- Sync fields
+  hotel_day_checkout TEXT
+);
+
+CREATE TABLE IF NOT EXISTS booking_notes (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
   version INTEGER NOT NULL DEFAULT 1,
-  device_id TEXT DEFAULT '',
-  vector_clock TEXT DEFAULT '{}',
-  origin TEXT DEFAULT 'local',
-  idempotency_key TEXT
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INTEGER NOT NULL REFERENCES bookings(id),
+  note_text TEXT NOT NULL,
+  alert_type TEXT NOT NULL,
+  alert_until TEXT,
+  is_active INTEGER NOT NULL DEFAULT 1
 );
 
-CREATE INDEX IF NOT EXISTS idx_bookings_updated ON bookings(updated_at);
-CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status, deleted_at);
-CREATE INDEX IF NOT EXISTS idx_bookings_room ON bookings(room_number);
-CREATE INDEX IF NOT EXISTS idx_bookings_deleted ON bookings(deleted_at);
-
--- ─── Payments ─────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS payments (
-  id TEXT PRIMARY KEY,
-  server_id TEXT,
-  booking_id TEXT,
-  room_number TEXT,
-  amount REAL NOT NULL,
-  payment_date TEXT NOT NULL,
-  payment_method TEXT NOT NULL,
-  revenue_type TEXT NOT NULL,
-  notes TEXT,
-  hotel_day_key TEXT,
-  is_voided INTEGER DEFAULT 0,
-  voided_at INTEGER,
-  voided_by TEXT,
-  -- Sync fields
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  deleted_at INTEGER,
-  version INTEGER NOT NULL DEFAULT 1,
-  device_id TEXT DEFAULT '',
-  vector_clock TEXT DEFAULT '{}',
-  origin TEXT DEFAULT 'local',
-  idempotency_key TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_payments_updated ON payments(updated_at);
-CREATE INDEX IF NOT EXISTS idx_payments_booking ON payments(booking_id);
-CREATE INDEX IF NOT EXISTS idx_payments_deleted ON payments(deleted_at);
-
--- ─── Expenses ─────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS expenses (
-  id TEXT PRIMARY KEY,
-  server_id TEXT,
-  expense_type TEXT NOT NULL,
-  description TEXT NOT NULL,
-  amount REAL NOT NULL,
-  date TEXT NOT NULL,
-  hotel_day_key TEXT,
-  related_id INTEGER,
-  cash_transaction_id INTEGER,
-  employee_uuid TEXT,
-  is_auto_generated INTEGER DEFAULT 0,
-  -- Sync fields
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  deleted_at INTEGER,
-  version INTEGER NOT NULL DEFAULT 1,
-  device_id TEXT DEFAULT '',
-  vector_clock TEXT DEFAULT '{}',
-  origin TEXT DEFAULT 'local',
-  idempotency_key TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_expenses_updated ON expenses(updated_at);
-CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
-CREATE INDEX IF NOT EXISTS idx_expenses_deleted ON expenses(deleted_at);
-
--- ─── Employees ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS employees (
-  id TEXT PRIMARY KEY,
-  server_id TEXT,
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   basic_salary REAL NOT NULL,
-  position TEXT DEFAULT 'موظف',
-  phone TEXT DEFAULT '',
-  hire_date TEXT DEFAULT '',
+  position TEXT NOT NULL DEFAULT 'موظف',
+  phone TEXT NOT NULL DEFAULT '',
+  hire_date TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL,
   termination_date TEXT,
   termination_reason TEXT,
-  employee_id TEXT,
-  -- Sync fields
+  employee_i_d TEXT
+);
+
+CREATE TABLE IF NOT EXISTS expenses (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
   version INTEGER NOT NULL DEFAULT 1,
-  device_id TEXT DEFAULT '',
-  vector_clock TEXT DEFAULT '{}',
-  origin TEXT DEFAULT 'local',
-  idempotency_key TEXT
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  expense_type TEXT NOT NULL,
+  related_id INTEGER,
+  description TEXT NOT NULL,
+  amount REAL NOT NULL,
+  date TEXT NOT NULL,
+  cash_transaction_id INTEGER,
+  hotel_day_key TEXT,
+  category_uuid TEXT,
+  cash_flow_uuid TEXT,
+  is_auto_generated INTEGER NOT NULL DEFAULT 0,
+  employee_uuid TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_employees_updated ON employees(updated_at);
-CREATE INDEX IF NOT EXISTS idx_employees_status ON employees(status, deleted_at);
-CREATE INDEX IF NOT EXISTS idx_employees_deleted ON employees(deleted_at);
-
--- ─── Sync Log (audit trail for every change) ──────────────────
-CREATE TABLE IF NOT EXISTS sync_log (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity TEXT NOT NULL,
-  entity_id TEXT NOT NULL,
-  operation TEXT NOT NULL, -- 'create', 'update', 'delete'
-  version INTEGER NOT NULL,
-  device_id TEXT,
-  timestamp INTEGER NOT NULL,
-  payload TEXT -- JSON snapshot of the change
-);
-
-CREATE INDEX IF NOT EXISTS idx_sync_log_entity ON sync_log(entity, entity_id);
-CREATE INDEX IF NOT EXISTS idx_sync_log_timestamp ON sync_log(timestamp);
-
--- ─── Sync Conflicts ───────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS sync_conflicts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  entity TEXT NOT NULL,
-  entity_id TEXT NOT NULL,
-  local_payload TEXT NOT NULL, -- JSON
-  remote_payload TEXT NOT NULL, -- JSON
-  local_vector_clock TEXT,
-  remote_vector_clock TEXT,
-  resolution TEXT NOT NULL, -- 'last_write_wins', 'local_wins', 'remote_wins', 'manual'
-  resolved_at INTEGER,
+CREATE TABLE IF NOT EXISTS cash_transactions (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
   created_at INTEGER NOT NULL,
-  device_id TEXT
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  register_id INTEGER,
+  transaction_type TEXT NOT NULL,
+  amount REAL NOT NULL,
+  reference_type TEXT,
+  reference_id INTEGER,
+  description TEXT,
+  transaction_time TEXT NOT NULL,
+  created_by INTEGER
 );
 
-CREATE INDEX IF NOT EXISTS idx_conflicts_entity ON sync_conflicts(entity, entity_id);
-CREATE INDEX IF NOT EXISTS idx_conflicts_created ON sync_conflicts(created_at);
-
--- ─── Idempotency Log (prevents duplicate operations) ──────────
-CREATE TABLE IF NOT EXISTS idempotency_log (
-  key TEXT PRIMARY KEY,
-  entity TEXT NOT NULL,
-  operation TEXT NOT NULL,
-  entity_id TEXT,
-  processed_at INTEGER NOT NULL,
-  response TEXT -- JSON response to return for duplicate requests
+CREATE TABLE IF NOT EXISTS payments (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  server_payment_id INTEGER,
+  booking_local_id INTEGER REFERENCES bookings(id),
+  server_booking_id INTEGER,
+  room_number TEXT,
+  amount REAL NOT NULL,
+  payment_date TEXT NOT NULL,
+  notes TEXT,
+  payment_method TEXT NOT NULL,
+  revenue_type TEXT NOT NULL,
+  cash_transaction_local_id INTEGER REFERENCES cash_transactions(id),
+  cash_transaction_server_id INTEGER,
+  reference_number TEXT,
+  hotel_day_key TEXT,
+  is_pending_balance INTEGER NOT NULL DEFAULT 0,
+  linked_debt_uuid TEXT,
+  booking_uuid_cache TEXT,
+  discount_amount REAL,
+  discount_start_date TEXT,
+  is_voided INTEGER NOT NULL DEFAULT 0,
+  voided_at INTEGER,
+  voided_by TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_idempotency_entity ON idempotency_log(entity, entity_id);
+CREATE TABLE IF NOT EXISTS debts (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_local_id INTEGER REFERENCES bookings(id),
+  guest_name TEXT NOT NULL,
+  checkin_date TEXT NOT NULL,
+  checkout_date TEXT NOT NULL,
+  date_recorded TEXT NOT NULL DEFAULT '',
+  debt_reason TEXT NOT NULL DEFAULT '',
+  total_amount REAL NOT NULL,
+  paid_amount REAL NOT NULL,
+  remaining_amount REAL NOT NULL,
+  payment_date TEXT NOT NULL,
+  is_settled INTEGER NOT NULL DEFAULT 0,
+  pledge TEXT,
+  pledge_type TEXT,
+  note TEXT,
+  debt_uuid TEXT,
+  hotel_day_opened TEXT,
+  hotel_day_closed TEXT,
+  is_from_auto_fix INTEGER NOT NULL DEFAULT 0,
+  settlement_confirmed INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS shift_notes (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  priority TEXT NOT NULL DEFAULT 'medium',
+  shift_type TEXT NOT NULL,
+  is_read INTEGER NOT NULL DEFAULT 0,
+  expires_at TEXT,
+  created_by TEXT NOT NULL DEFAULT 'user'
+);
+
+CREATE TABLE IF NOT EXISTS booking_nights (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_local_id INTEGER NOT NULL REFERENCES bookings(id),
+  hotel_day_key TEXT NOT NULL,
+  night_start TEXT NOT NULL,
+  night_end TEXT NOT NULL,
+  nightly_rate REAL NOT NULL DEFAULT 0.0,
+  sequence INTEGER NOT NULL DEFAULT 0,
+  is_processed_by_auto_fix INTEGER NOT NULL DEFAULT 0,
+  base_rate REAL NOT NULL DEFAULT 0.0,
+  adjustment REAL NOT NULL DEFAULT 0.0,
+  final_rate REAL NOT NULL DEFAULT 0.0,
+  applied_adjustment_uuid TEXT,
+  applied_adjustments_json TEXT,
+  UNIQUE (booking_local_id, hotel_day_key)
+);
+
+CREATE TABLE IF NOT EXISTS hotel_day_ledger (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hotel_day_key TEXT NOT NULL,
+  total_income REAL NOT NULL DEFAULT 0.0,
+  total_expenses REAL NOT NULL DEFAULT 0.0,
+  pending_balances REAL NOT NULL DEFAULT 0.0,
+  occupancy_rate REAL NOT NULL DEFAULT 0.0,
+  bookings_processed INTEGER NOT NULL DEFAULT 0,
+  payments_processed INTEGER NOT NULL DEFAULT 0,
+  debts_processed INTEGER NOT NULL DEFAULT 0,
+  expenses_processed INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'draft',
+  UNIQUE (hotel_day_key)
+);
+
+CREATE TABLE IF NOT EXISTS price_adjustments (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  target_type TEXT NOT NULL,
+  target_uuid TEXT NOT NULL,
+  adjustment_type TEXT NOT NULL,
+  previous_value INTEGER NOT NULL,
+  new_value INTEGER NOT NULL,
+  reason TEXT,
+  effective_date TEXT NOT NULL,
+  applied_by TEXT NOT NULL,
+  hotel_day_key TEXT NOT NULL,
+  is_reversed INTEGER NOT NULL DEFAULT 0,
+  reversed_at TEXT,
+  reversed_by TEXT
+);
+
+CREATE TABLE IF NOT EXISTS booking_price_adjustments (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_local_uuid TEXT NOT NULL REFERENCES bookings(local_uuid),
+  booking_local_id INTEGER REFERENCES bookings(id),
+  room_number TEXT,
+  adjustment_type INTEGER NOT NULL DEFAULT 0,
+  adjustment_mode TEXT NOT NULL DEFAULT 'per_night',
+  amount REAL NOT NULL DEFAULT 0.0,
+  effective_hotel_day TEXT NOT NULL,
+  end_hotel_day TEXT,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  reason TEXT,
+  applied_by TEXT,
+  cancelled_at TEXT,
+  cancelled_by TEXT
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  operation_type TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_uuid TEXT NOT NULL,
+  entity_id INTEGER,
+  previous_state TEXT,
+  new_state TEXT,
+  changed_fields TEXT,
+  performed_by TEXT NOT NULL,
+  ip_address TEXT,
+  hotel_day_key TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  timestamp_iso TEXT NOT NULL,
+  is_financial INTEGER NOT NULL DEFAULT 0,
+  amount_impact INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS payment_voids (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  original_payment_uuid TEXT NOT NULL UNIQUE,
+  original_payment_id INTEGER NOT NULL,
+  booking_uuid TEXT NOT NULL,
+  voided_amount INTEGER NOT NULL,
+  void_reason TEXT NOT NULL,
+  voided_by TEXT NOT NULL,
+  voided_at INTEGER NOT NULL,
+  voided_at_iso TEXT NOT NULL,
+  hotel_day_key TEXT NOT NULL,
+  reversal_payment_uuid TEXT,
+  approved_by TEXT,
+  note TEXT,
+  original_amount REAL,
+  payment_uuid TEXT
+);
+
+CREATE TABLE IF NOT EXISTS guest_infos (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  room_number TEXT NOT NULL,
+  guest_name TEXT NOT NULL,
+  nationality TEXT NOT NULL,
+  id_number TEXT NOT NULL,
+  id_type TEXT NOT NULL DEFAULT 'بطاقة شخصية',
+  issue_date TEXT,
+  issue_place TEXT,
+  governorate TEXT,
+  notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS salary_cycles (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL REFERENCES employees(id),
+  cycle_key TEXT NOT NULL,
+  hotel_day_start TEXT,
+  hotel_day_end TEXT,
+  expected_amount INTEGER NOT NULL DEFAULT 0,
+  actual_paid INTEGER NOT NULL DEFAULT 0,
+  remaining_amount INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'draft',
+  UNIQUE (employee_id, cycle_key)
+);
+
+CREATE TABLE IF NOT EXISTS salary_payments (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cycle_id INTEGER NOT NULL REFERENCES salary_cycles(id),
+  amount INTEGER NOT NULL DEFAULT 0,
+  hotel_day_key TEXT,
+  payment_date_iso TEXT NOT NULL,
+  method TEXT,
+  is_auto_generated INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS salary_withdrawals (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL REFERENCES employees(id),
+  amount REAL NOT NULL,
+  withdraw_date TEXT NOT NULL,
+  reason TEXT,
+  hotel_day_key TEXT,
+  withdrawal_type TEXT,
+  description TEXT,
+  expense_id INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS salary_carry_over_logs (
+  local_uuid TEXT NOT NULL UNIQUE,
+  server_id INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  deleted_at INTEGER,
+  last_modified INTEGER NOT NULL,
+  created_at_iso TEXT,
+  updated_at_iso TEXT,
+  deleted_at_iso TEXT,
+  created_at_epoch INTEGER NOT NULL DEFAULT 0,
+  last_modified_epoch INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  origin TEXT NOT NULL DEFAULT 'local',
+  vector_clock TEXT NOT NULL DEFAULT '{}',
+  device_id TEXT NOT NULL DEFAULT '',
+  idempotency_key TEXT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL REFERENCES employees(id),
+  amount REAL NOT NULL,
+  previous_cycle_start TEXT NOT NULL,
+  previous_cycle_end TEXT NOT NULL,
+  new_cycle_start TEXT NOT NULL,
+  new_cycle_end TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  carried_at INTEGER NOT NULL
+);
