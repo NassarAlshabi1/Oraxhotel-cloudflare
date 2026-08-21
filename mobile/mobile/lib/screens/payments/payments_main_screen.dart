@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../components/app_scaffold.dart';
 import '../../mixins/sync_on_exit_mixin.dart';
 import '../../models/payment_models.dart';
 import '../../providers/appwrite_providers.dart' hide ConnectionState;
@@ -21,6 +20,7 @@ import '../../utils/status_utils.dart';
 import '../../utils/time.dart';
 import 'booking_checkout_screen.dart';
 import 'payment_history_screen.dart';
+import 'widgets/payments_main_shell.dart';
 
 class PaymentsMainScreen extends ConsumerStatefulWidget {
   const PaymentsMainScreen({super.key});
@@ -30,10 +30,9 @@ class PaymentsMainScreen extends ConsumerStatefulWidget {
 }
 
 class _PaymentsMainScreenState extends ConsumerState<PaymentsMainScreen>
-    with SingleTickerProviderStateMixin, SyncOnExitMixin {
+    with SyncOnExitMixin {
   @override
   String get screenId => 'payments_main';
-  late TabController _tabController;
   // ✅ ValueNotifier بدلاً من bool + setState — يمنع إعادة بناء الشاشة كاملة
   // عند تغيير حالة الحفظ (يُعيد بناء الزر فقط)
   final ValueNotifier<bool> _isSavingPayment = ValueNotifier<bool>(false);
@@ -41,7 +40,6 @@ class _PaymentsMainScreenState extends ConsumerState<PaymentsMainScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     CrashlyticsService.instance.setCurrentScreen('PaymentsMainScreen');
     // ✅ Analytics: تتبّع مشاهدة شاشة المدفوعات
     unawaited(
@@ -54,7 +52,6 @@ class _PaymentsMainScreenState extends ConsumerState<PaymentsMainScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _isSavingPayment.dispose();
     super.dispose();
   }
@@ -62,44 +59,12 @@ class _PaymentsMainScreenState extends ConsumerState<PaymentsMainScreen>
   @override
   Widget build(BuildContext context) {
     return wrapWithSyncOnExit(
-      child: AppScaffold(
-        title: 'إدارة المدفوعات',
-        fab: FloatingActionButton.extended(
-          onPressed: _isSavingPayment.value ? null : _showNewPaymentDialog,
-          icon: const Icon(Icons.add_card),
-          label: const Text('دفعة جديدة'),
-          backgroundColor: Colors.green,
-        ),
-        body: Column(
-          children: [
-            TabBar(
-              controller: _tabController,
-              labelColor: Colors.green.shade800,
-              unselectedLabelColor: Colors.grey.shade600,
-              indicatorColor: Colors.green,
-              labelStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-              unselectedLabelStyle: const TextStyle(fontSize: 11),
-              tabs: const [
-                Tab(text: 'نظرة عامة', icon: Icon(Icons.dashboard, size: 18)),
-                Tab(text: 'المعاملات', icon: Icon(Icons.list, size: 18)),
-                Tab(text: 'الحجوزات النشطة', icon: Icon(Icons.hotel, size: 18)),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildOverviewTab(),
-                  _buildTransactionsTab(),
-                  _buildActiveBookingsTab(),
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: PaymentsMainShell(
+        isSaving: _isSavingPayment,
+        onNewPayment: _showNewPaymentDialog,
+        overviewBuilder: (_) => _buildOverviewTab(),
+        transactionsBuilder: (_) => _buildTransactionsTab(),
+        activeBookingsBuilder: (_) => _buildActiveBookingsTab(),
       ),
     );
   }

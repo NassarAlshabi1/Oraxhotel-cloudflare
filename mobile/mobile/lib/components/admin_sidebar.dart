@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/navigation/app_routes.dart';
 import '../providers/auth_provider.dart';
 
 class AdminSidebar extends ConsumerWidget {
@@ -119,128 +120,20 @@ class AdminSidebar extends ConsumerWidget {
             ),
           ),
 
-          // Menu Items - exactly matching PHP sidebar
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 16),
               children: [
-                if (can('dashboard'))
-                  _buildMenuItem(
-                    icon: Icons.dashboard,
-                    title: 'لوحة التحكم',
-                    route: '/dashboard',
-                    isActive: currentRoute == '/dashboard',
-                    onTap: () => onRouteSelected('/dashboard'),
-                    context: context,
-                  ),
-                if (can('rooms'))
-                  _buildMenuItem(
-                    icon: Icons.bed,
-                    title: 'إدارة الغرف',
-                    route: '/rooms',
-                    isActive: currentRoute.startsWith('/rooms'),
-                    onTap: () => onRouteSelected('/rooms'),
-                    context: context,
-                  ),
-                if (can('bookings'))
-                  _buildMenuItem(
-                    icon: Icons.assignment,
-                    title: 'إدارة الحجوزات',
-                    route: '/bookings',
-                    isActive: currentRoute.startsWith('/bookings'),
-                    onTap: () => onRouteSelected('/bookings'),
-                    context: context,
-                  ),
-                if (can('payments'))
-                  _buildMenuItem(
-                    icon: Icons.attach_money,
-                    title: 'إدارة المدفوعات',
-                    route: '/payments',
-                    isActive: currentRoute.startsWith('/payments'),
-                    onTap: () => onRouteSelected('/payments'),
-                    context: context,
-                  ),
-                if (can('debts'))
-                  _buildMenuItem(
-                    icon: Icons.account_balance,
-                    title: 'الديون',
-                    route: '/debts',
-                    isActive: currentRoute.startsWith('/debts'),
-                    onTap: () => onRouteSelected('/debts'),
-                    context: context,
-                  ),
-                if (can('expenses'))
-                  _buildMenuItem(
-                    icon: Icons.receipt_long,
-                    title: 'إدارة المصروفات',
-                    route: '/expenses',
-                    isActive: currentRoute.startsWith('/expenses'),
-                    onTap: () => onRouteSelected('/expenses'),
-                    context: context,
-                  ),
-                if (can('finance'))
-                  _buildMenuItem(
-                    icon: Icons.account_balance_wallet,
-                    title: 'الصندوق والمالية',
-                    route: '/finance',
-                    isActive: currentRoute.startsWith('/finance'),
-                    onTap: () => onRouteSelected('/finance'),
-                    context: context,
-                  ),
-                if (can('reports'))
-                  _buildMenuItem(
-                    icon: Icons.bar_chart,
-                    title: 'التقارير',
-                    route: '/reports',
-                    isActive: currentRoute.startsWith('/reports'),
-                    onTap: () => onRouteSelected('/reports'),
-                    context: context,
-                  ),
-                if (can('notes'))
-                  _buildMenuItem(
-                    icon: Icons.note,
-                    title: 'الملاحظات والتنبيهات',
-                    route: '/notes',
-                    isActive: currentRoute.startsWith('/notes'),
-                    onTap: () => onRouteSelected('/notes'),
-                    context: context,
-                  ),
-                if (can('settings'))
-                  _buildMenuItem(
-                    icon: Icons.gavel,
-                    title: 'القائمة السوداء',
-                    route: '/blacklist',
-                    isActive: currentRoute.startsWith('/blacklist'),
-                    onTap: () => onRouteSelected('/blacklist'),
-                    context: context,
-                  ),
-                if (can('information'))
-                  _buildMenuItem(
-                    icon: Icons.badge,
-                    title: 'سجل المعلومية',
-                    route: '/information',
-                    isActive: currentRoute.startsWith('/information'),
-                    onTap: () => onRouteSelected('/information'),
-                    context: context,
-                  ),
-                if (can('settings'))
-                  _buildMenuItem(
-                    icon: Icons.smart_toy,
-                    title: 'المساعد الذكي',
-                    route: '/ai',
-                    isActive: currentRoute.startsWith('/ai'),
-                    onTap: () => onRouteSelected('/ai'),
-                    context: context,
-                  ),
-                if (can('settings'))
-                  _buildMenuItem(
-                    icon: Icons.settings,
-                    title: 'الإعدادات',
-                    route: '/settings',
-                    isActive: currentRoute.startsWith('/settings'),
-                    onTap: () => onRouteSelected('/settings'),
-                    context: context,
-                  ),
+                for (final item in appRouteDefinitions)
+                  if (can(item.permission))
+                    _buildMenuItem(
+                      icon: item.icon,
+                      title: item.title,
+                      route: item.path,
+                      isActive: item.matches(currentRoute),
+                      onTap: () => onRouteSelected(item.path),
+                      context: context,
+                    ),
               ],
             ),
           ),
