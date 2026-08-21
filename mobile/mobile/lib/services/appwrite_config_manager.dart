@@ -11,10 +11,7 @@ class AppwriteConfigManager {
   static String _endpoint = AppwriteConfig.endpoint;
   static String _projectId = AppwriteConfig.projectId;
   static String _databaseId = AppwriteConfig.databaseId;
-  // ✅ استخدم مفتاح API الافتراضي المُدمج كقيمة ابتدائية.
-  // عند أول تشغيل، _apiKeyValue = AppwriteConfig.defaultApiKey.
-  // إذا أعاد المستخدم تعيينه لاحقاً، تُحفظ القيمة الجديدة في SharedPreferences
-  // وتُحمَّل بدلاً من الافتراضي عند بدء التشغيل التالي.
+  // لا يُحمّل أي مفتاح خادمي مضمّن؛ يُزوّد المسار القديم وقت التشغيل فقط.
   static String _apiKeyValue = AppwriteConfig.defaultApiKey;
 
   static String get endpoint => _endpoint;
@@ -27,8 +24,7 @@ class AppwriteConfigManager {
     _endpoint = prefs.getString(_endpointKey) ?? AppwriteConfig.endpoint;
     _projectId = prefs.getString(_projectIdKey) ?? AppwriteConfig.projectId;
     _databaseId = prefs.getString(_databaseIdKey) ?? AppwriteConfig.databaseId;
-    // ✅ إذا لم يُخزَّن مفتاح API في prefs، نستخدم المفتاح الافتراضي المُدمج.
-    // هذا يضمن أن التطبيق يعمل "out-of-the-box" دون الحاجة لإدخال مفتاح يدوياً.
+    // إذا لم يُخزَّن مفتاح API، تبقى القيمة فارغة ولا يُضمّن سر داخل التطبيق.
     _apiKeyValue = prefs.getString(_apiKey) ?? AppwriteConfig.defaultApiKey;
 
     if (kDebugMode) {
@@ -79,8 +75,8 @@ class AppwriteConfigManager {
     _endpoint = AppwriteConfig.endpoint;
     _projectId = AppwriteConfig.projectId;
     _databaseId = AppwriteConfig.databaseId;
-    // ✅ إعادة التعيين تُعيد المفتاح الافتراضي المُدمج، لا قيمة فارغة
-    _apiKeyValue = AppwriteConfig.defaultApiKey;
+    // إعادة التعيين تُزيل مفتاح التشغيل بدلاً من استعادة سر مضمّن.
+    _apiKeyValue = '';
 
     if (kDebugMode) {
       debugPrint('🔄 Appwrite Config Reset to Defaults');

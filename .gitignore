@@ -3,6 +3,13 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# === Production secrets and signing material ===
+HotelSys/appsettings.Production.json
+HotelSys/appsettings.*.local.json
+mobile/mobile/android/key.properties
+mobile/mobile/android/app/*.keystore
+mobile/mobile/Keystore.txt
+
 # === Orax Hotel Installer artifacts ===
 # لا تُرفع إلى Git ملفات البناء الصغيرة فقط؛ .exe و .7z تُرفع عبر Git LFS
 installer/build-output/

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sqlite3
 import json
 import urllib.request
@@ -9,7 +10,7 @@ from pathlib import Path
 
 ENDPOINT = "https://fra.cloud.appwrite.io/v1"
 PROJECT_ID = "6a2b01d0000752ce97e7"
-API_KEY = "standard_721adc4e95401dab9274bc2a7596ce0a61bfcdf7bbe37e7c64d52fb2113414e27c8d3e8f1977ebaafcf8ae63e7f3c873aad38c2a07e3ab93229cd7cd745a3ad2f6b9ec3fc407e8abfae2be3e5be00315f4d4a74cc07bc5ba5b0eda13e4569c8ee8ce2532a7bd43d827c7b83a84495974b9995d12f031e2bead685cebbe31aa3d"
+API_KEY = os.getenv("APPWRITE_API_KEY", "")
 DATABASE_ID = "6a2b030d000445596163"
 SQLITE_PATH = "/home/daytona/uploads/marina_hotel_backup_2026-06-29_1782697246985.sqlite"
 

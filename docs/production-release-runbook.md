@@ -33,6 +33,16 @@ flutter build appbundle --release --obfuscate --split-debug-info=./debug_symbols
 
 يُبنى المثبّت على Windows عبر `installer/Build-Installer.ps1` أو GitHub Actions. يجب اختبار تثبيت SQL Server Express، إنشاء/اكتشاف `Hotel_alkheer`، تشغيل `HotelSys.exe`، والوصول إلى endpoint الصحة. لا يمكن بناء هذا المثبّت محلياً على Linux من دون .NET SDK وبيئة Windows.
 
+## فجوة التكامل التي تمنع إعلان اكتمال المسار المركزي
+
+التدقيق الحالي يثبت أن `HotelSys` يحتوي على خدمات Appwrite القديمة فقط، ولا يحتوي على عميل Cloudflare Worker أو ناشر أحداث إلى D1. في المقابل، يحتوي Flutter وWorker على مسار Cloudflare/desktop-first. لذلك فإن بناء المثبّت واختبار endpoint المحلي لا يثبت بعد أن كل تغيير يُسجّل في SQL Server سيصل إلى Worker/D1. يجب تنفيذ ناشر سطح مكتب مصادق، أو اعتماد وسيط مزامنة موثّق، قبل وصف النظام بأنه تكامل إنتاجي كامل بين SQL Server وFlutter عبر Cloudflare.
+
+حتى تنفيذ هذه الفجوة، يكون قرار الإصدار الآمن هو تشغيل HotelSys محلياً مع SQL Server، وإبقاء Appwrite القديم معطلاً افتراضياً، وتشغيل مسار Flutter/Worker فقط وفق اختبارات المزامنة المتاحة. لا يجوز إعادة تفعيل Appwrite في Production إلا بعد تدوير المفتاح القديم ووضع مفتاح جديد خارج Git، ولا يجوز اعتبار ذلك بديلاً عن Cloudflare desktop publisher.
+
+## متغيرات البيئة المقترحة لـ HotelSys
+
+يُشغّل HotelSys في Windows مع `ASPNETCORE_ENVIRONMENT=Production`. تُمرّر سلسلة اتصال SQL Server عبر `ConnectionStrings__Hotel_alkheerContext`. إذا تقرر تشغيل Appwrite القديم مؤقتاً، تُمرّر قيمه عبر `Appwrite__Endpoint` و`Appwrite__ProjectId` و`Appwrite__DatabaseId` و`Appwrite__ApiKey` مع إبقاء `Appwrite__Enabled=true` فقط بعد اعتماد المفتاح الجديد. لا تُحفظ هذه القيم داخل installer أو المستودع.
+
 ## قرار النشر
 
 نجاح البناء والاختبارات لا يعني نشر Worker أو إصدار تطبيق للجمهور. يلزم اعتماد منفصل للبيئة الحية، ونسخة D1 المستهدفة، وملف التوقيع، ونطاق المستخدمين. في حال فشل أي بوابة، يُوقف الإصدار ولا يُتجاوز الفشل بخيار force.

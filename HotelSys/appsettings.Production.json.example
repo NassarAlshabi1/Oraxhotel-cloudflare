@@ -1,16 +1,6 @@
-﻿{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft": "Warning",
-      "Microsoft.Hosting.Lifetime": "Information"
-    }
-  },
+{
   "ConnectionStrings": {
-    "NWindConnectionString": "XpoProvider=SQLite;Data Source=|DataDirectory|/Data/nwind.db",
-    "ReportsDataConnectionString": "Filename=Data/reportsData.db",
-    "cc": "",
-    "Hotel_alkheerContext": ""
+    "Hotel_alkheerContext": "Server=localhost;Database=Hotel_alkheer;Trusted_Connection=True;TrustServerCertificate=True;"
   },
   "Appwrite": {
     "Enabled": false,
@@ -19,8 +9,8 @@
     "AutoSyncGuests": false,
     "AutoSyncPayments": false,
     "Endpoint": "https://fra.cloud.appwrite.io/v1",
-    "ProjectId": "6a4408f300217885fd7b",
-    "DatabaseId": "6a4409b50019dd39dde5",
+    "ProjectId": "",
+    "DatabaseId": "",
     "ApiKey": "",
     "RoomsCollectionId": "rooms",
     "BookingsCollectionId": "bookings",
