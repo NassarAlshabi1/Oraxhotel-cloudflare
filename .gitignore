@@ -410,3 +410,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/tools/remote_d1_*.json
