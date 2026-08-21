@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 # Build configuration
 BUILD_TYPE="release"
-FLUTTER_VERSION="3.35.7"
+FLUTTER_VERSION="3.44.0"
 FLUTTER_CHANNEL="stable"
 
 # Directories
@@ -126,18 +126,15 @@ install_dependencies() {
         return 1
     fi
     
-    # Check for outdated dependencies
-    print_info "Checking for outdated dependencies..."
-    flutter pub outdated 2>&1 | tee outdated_dependencies.txt
-    
-    if [ -s "outdated_dependencies.txt" ]; then
-        print_error "Outdated dependencies found!"
-        print_info "See outdated_dependencies.txt for details"
-        print_info "Run 'flutter pub upgrade' to update dependencies"
+    # Generate an informational dependency report without failing the release
+    # merely because pub outdated prints a non-empty report.
+    print_info "Generating dependency report..."
+    if flutter pub outdated > outdated_dependencies.txt 2>&1; then
+        print_success "Dependency report generated: outdated_dependencies.txt"
     else
-        print_success "All dependencies are up to date"
+        print_info "Dependency report completed with warnings; review outdated_dependencies.txt"
     fi
-    
+
     return 0
 }
 
@@ -146,7 +143,7 @@ generate_code() {
     print_section "Generating Code"
     
     print_info "Running build_runner..."
-    if flutter pub run build_runner build --delete-conflicting-outputs; then
+    if dart run build_runner build --delete-conflicting-outputs; then
         print_success "Code generation completed"
     else
         print_error "Code generation failed"
@@ -171,23 +168,17 @@ run_quality_checks() {
         print_success "Static analysis passed"
     fi
     
-    # Check formatting
+    # Check formatting with the Dart formatter (Flutter has no `flutter format` command).
     print_info "Checking code formatting..."
-    if ! flutter format --set-exit-if-changed .; then
+    if ! dart format --set-exit-if-changed .; then
         print_error "Code formatting check failed"
         all_passed=false
     else
         print_success "Code formatting check passed"
     fi
-    
-    # Run linter
-    print_info "Running linter..."
-    if ! flutter lint; then
-        print_error "Linting failed"
-        all_passed=false
-    else
-        print_success "Linting passed"
-    fi
+
+    # `dart analyze` includes the configured linter rules; avoid a non-existent
+    # `flutter lint` command and keep one authoritative analysis result.
     
     if [ "$all_passed" = true ]; then
         print_success "All quality checks passed"
@@ -291,24 +282,24 @@ verify_build() {
     if [ "$1" = "apk" ] || [ "$1" = "all" ] || [ -z "$1" ]; then
         print_info "Checking APK files..."
         
-        if [ -f "$OUTPUT_APK_DIR/app-armeabi-v7a-release.apk" ] || \
-           [ -f "$OUTPUT_APK_DIR/marina_hotel_armeabi-v7a_*.apk" ]; then
+        if compgen -G "$OUTPUT_APK_DIR/app-armeabi-v7a-release.apk" >/dev/null || \
+           compgen -G "$OUTPUT_APK_DIR/marina_hotel_armeabi-v7a_*.apk" >/dev/null; then
             print_success "armeabi-v7a APK exists"
         else
             print_error "armeabi-v7a APK not found"
             all_passed=false
         fi
         
-        if [ -f "$OUTPUT_APK_DIR/app-arm64-v8a-release.apk" ] || \
-           [ -f "$OUTPUT_APK_DIR/marina_hotel_arm64-v8a_*.apk" ]; then
+        if compgen -G "$OUTPUT_APK_DIR/app-arm64-v8a-release.apk" >/dev/null || \
+           compgen -G "$OUTPUT_APK_DIR/marina_hotel_arm64-v8a_*.apk" >/dev/null; then
             print_success "arm64-v8a APK exists"
         else
             print_error "arm64-v8a APK not found"
             all_passed=false
         fi
         
-        if [ -f "$OUTPUT_APK_DIR/app-x86_64-release.apk" ] || \
-           [ -f "$OUTPUT_APK_DIR/marina_hotel_x86_64_*.apk" ]; then
+        if compgen -G "$OUTPUT_APK_DIR/app-x86_64-release.apk" >/dev/null || \
+           compgen -G "$OUTPUT_APK_DIR/marina_hotel_x86_64_*.apk" >/dev/null; then
             print_success "x86_64 APK exists"
         else
             print_error "x86_64 APK not found"
@@ -320,8 +311,8 @@ verify_build() {
     if [ "$1" = "appbundle" ] || [ "$1" = "all" ] || [ -z "$1" ]; then
         print_info "Checking AppBundle..."
         
-        if [ -f "$OUTPUT_BUNDLE_DIR/app-release.aab" ] || \
-           [ -f "$OUTPUT_BUNDLE_DIR/marina_hotel_*.aab" ]; then
+        if compgen -G "$OUTPUT_BUNDLE_DIR/app-release.aab" >/dev/null || \
+           compgen -G "$OUTPUT_BUNDLE_DIR/marina_hotel_*.aab" >/dev/null; then
             print_success "AppBundle exists"
         else
             print_error "AppBundle not found"
